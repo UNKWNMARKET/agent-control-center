@@ -8,3 +8,4 @@ out/
 .DS_Store
 .claude/
 SESSION_SECRET.txt
+OWNER-INVITE-LINK.txt

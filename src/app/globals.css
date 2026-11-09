@@ -1,12 +1,19 @@
 @import "tailwindcss";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   LEAD MANAGEMENT — Apple-inspired design system
-   Clean, light, lots of whitespace, hairline borders, restrained accent.
+   AGENT CONTROL CENTER — Apple-inspired design system
+
+   Light, generous whitespace, hairline borders, restrained accent — and
+   real depth. Surfaces sit on the canvas rather than being drawn on it:
+   every raised thing gets a tight contact shadow plus a wide ambient one,
+   and a one-pixel highlight along its top edge where the light lands.
+
+   Motion is spring-like and short. Everything that moves is switched off
+   under prefers-reduced-motion, because a CRM is used all day.
    ────────────────────────────────────────────────────────────────────────── */
 
 @theme {
-  --color-canvas: #f5f5f7;
+  --color-canvas: #f2f2f5;
   --color-surface: #ffffff;
   --color-surface-2: #fafafa;
 
@@ -38,8 +45,23 @@
   --radius-xl: 20px;
   --radius-2xl: 24px;
 
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.05);
-  --shadow-pop: 0 8px 30px rgba(0, 0, 0, 0.12);
+  /* Elevation. Each level is a tight contact shadow (the object meeting the
+     surface) plus a wide, soft ambient one (the room light around it). */
+  --shadow-1: 0 1px 1px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 24px -6px rgba(0, 0, 0, 0.09);
+  --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.06), 0 18px 40px -10px rgba(0, 0, 0, 0.16);
+  --shadow-4: 0 4px 10px rgba(0, 0, 0, 0.08), 0 32px 64px -16px rgba(0, 0, 0, 0.26);
+
+  /* Kept for anything still referencing the old names. */
+  --shadow-card: var(--shadow-2);
+  --shadow-pop: var(--shadow-4);
+
+  /* The highlight along a lit top edge, and the hairline that defines it. */
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --edge-line: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+  --ease-spring: cubic-bezier(0.2, 0.9, 0.25, 1.1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html {
@@ -52,6 +74,13 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   letter-spacing: -0.011em;
+}
+
+/* Headings tighten up the way SF Pro Display does at larger sizes. */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.021em;
 }
 
 /* Thin, unobtrusive scrollbars */
@@ -72,10 +101,62 @@ body {
 /* ── Reusable component classes ─────────────────────────────────────────── */
 @layer components {
   .card {
+    position: relative;
     background: var(--color-surface);
     border: 1px solid var(--color-line);
     border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-2), var(--edge-light);
+    transition:
+      box-shadow 0.35s var(--ease-out),
+      transform 0.35s var(--ease-out);
+  }
+
+  /* Opt-in: a card that answers the pointer. Used for anything clickable. */
+  .card-interactive {
+    cursor: pointer;
+  }
+  .card-interactive:hover {
+    transform: translate3d(0, -2px, 0);
+    box-shadow: var(--shadow-3), var(--edge-light);
+  }
+  .card-interactive:active {
+    transform: translate3d(0, 0, 0);
+    box-shadow: var(--shadow-1), var(--edge-light);
+    transition-duration: 0.09s;
+  }
+
+  /* Opt-in 3D: the card tips very slightly away from the pointer and catches
+     a band of light across its face. Two and a half degrees is deliberate —
+     enough to read as physical, not enough to distort the numbers on it. */
+  .tilt {
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .tilt::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0) 30%,
+      rgba(255, 255, 255, 0.55) 48%,
+      rgba(255, 255, 255, 0) 66%
+    );
+    transition: opacity 0.45s var(--ease-out);
+  }
+  .tilt:hover {
+    transform: perspective(1000px) translate3d(0, -3px, 0) rotateX(2.5deg) scale(1.012);
+    box-shadow: var(--shadow-3), var(--edge-light);
+  }
+  .tilt:hover::after {
+    opacity: 1;
+  }
+  .tilt:active {
+    transform: perspective(1000px) translate3d(0, -1px, 0) rotateX(1deg) scale(0.998);
+    transition-duration: 0.09s;
   }
 
   .btn {
@@ -88,28 +169,46 @@ body {
     font-size: 0.9rem;
     padding: 0.55rem 1.15rem;
     line-height: 1;
-    transition: all 0.18s ease;
     cursor: pointer;
     white-space: nowrap;
     user-select: none;
+    transition:
+      background 0.18s ease,
+      box-shadow 0.22s var(--ease-out),
+      transform 0.14s var(--ease-spring);
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.965);
   }
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    box-shadow: none;
   }
+
   .btn-primary {
-    background: var(--color-accent);
+    background: linear-gradient(180deg, #0a84ff 0%, var(--color-accent) 100%);
     color: #fff;
+    box-shadow:
+      0 1px 1px rgba(0, 0, 0, 0.07),
+      0 4px 14px -2px rgba(0, 113, 227, 0.36),
+      inset 0 1px 0 rgba(255, 255, 255, 0.26);
   }
   .btn-primary:hover:not(:disabled) {
-    background: var(--color-accent-hover);
+    background: linear-gradient(180deg, #1a8fff 0%, var(--color-accent-hover) 100%);
+    box-shadow:
+      0 1px 1px rgba(0, 0, 0, 0.07),
+      0 8px 22px -4px rgba(0, 113, 227, 0.44),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   .btn-secondary {
     background: rgba(0, 0, 0, 0.05);
     color: var(--color-ink);
+    box-shadow: var(--edge-line);
   }
   .btn-secondary:hover:not(:disabled) {
     background: rgba(0, 0, 0, 0.09);
+    box-shadow: var(--shadow-1), var(--edge-line);
   }
   .btn-ghost {
     background: transparent;
@@ -121,9 +220,11 @@ body {
   .btn-danger {
     background: var(--color-danger-soft);
     color: var(--color-danger);
+    box-shadow: var(--edge-line);
   }
   .btn-danger:hover:not(:disabled) {
     background: #fbdadf;
+    box-shadow: var(--shadow-1), var(--edge-line);
   }
 
   .input {
@@ -134,15 +235,20 @@ body {
     padding: 0.62rem 0.85rem;
     font-size: 0.92rem;
     color: var(--color-ink);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
     outline: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
   }
   .input::placeholder {
     color: var(--color-faint);
   }
   .input:focus {
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 3.5px var(--color-accent-soft);
+    box-shadow:
+      0 0 0 3.5px var(--color-accent-soft),
+      inset 0 1px 2px rgba(0, 0, 0, 0.02);
   }
   select.input {
     appearance: none;
@@ -170,13 +276,48 @@ body {
     font-size: 0.74rem;
     font-weight: 600;
     line-height: 1.2;
+    box-shadow: var(--edge-line);
   }
 }
 
+/* ── Materials ──────────────────────────────────────────────────────────── */
+
+/* Frosted glass, as on a macOS sidebar: translucent, saturated, with a lit
+   top edge so it reads as a pane floating above what it covers. */
 .glass {
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: var(--edge-light);
+}
+
+/* Elevation utilities for anything not using .card. */
+.elev-1 {
+  box-shadow: var(--shadow-1), var(--edge-light);
+}
+.elev-2 {
+  box-shadow: var(--shadow-2), var(--edge-light);
+}
+.elev-3 {
+  box-shadow: var(--shadow-3), var(--edge-light);
+}
+.elev-4 {
+  box-shadow: var(--shadow-4), var(--edge-light);
+}
+
+/* Content settling into place on arrival — 12px and done. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.42s var(--ease-out) both;
 }
 
 /* A row that can slide sideways without showing a scrollbar across the
@@ -187,4 +328,24 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ── Respect the system setting ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .card-interactive:hover,
+  .tilt:hover,
+  .tilt:active,
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+  .rise {
+    animation: none;
+  }
 }

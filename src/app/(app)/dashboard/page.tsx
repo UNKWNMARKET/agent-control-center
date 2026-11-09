@@ -89,7 +89,7 @@ export default async function DashboardPage() {
           <Link
             key={s.label}
             href={s.href}
-            className="card group p-5 transition-transform hover:-translate-y-0.5"
+            className="card tilt group p-5"
           >
             <div className="flex items-center justify-between">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-accent">
