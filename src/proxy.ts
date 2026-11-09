@@ -5,6 +5,7 @@ const SESSION_COOKIE = "lm_session";
 // Paths that never require authentication.
 const PUBLIC_PREFIXES = [
   "/login",
+  "/accept-invite",
   "/forgot-password",
   "/reset-password",
   "/api/webhooks",
