@@ -2,12 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/auth";
 import { getCurrentUser } from "@/lib/auth";
 import { parseVehicles, cleanVehicles } from "@/lib/vehicles";
 import { parseDrivers, cleanDrivers } from "@/lib/drivers";
 import { scrubFields } from "@/lib/dnc";
+import { lookupNewLead } from "@/app/actions/property";
 
 async function authUser() {
   const user = await getCurrentUser();
@@ -84,6 +86,11 @@ export async function createCustomer(formData: FormData): Promise<void> {
       },
     },
   });
+
+  // Ownership and homestead are pulled for everyone who enters the book, not
+  // just leads that arrive from a source. It runs after the response so a
+  // slow tax roll never holds up the person typing.
+  after(() => lookupNewLead(customer.id, user.agencyId));
 
   revalidatePath("/customers");
   revalidatePath("/leads");

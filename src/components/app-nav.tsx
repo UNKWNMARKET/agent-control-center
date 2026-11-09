@@ -20,6 +20,7 @@ import {
   Settings,
   Menu,
   X,
+  Building2,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Avatar } from "@/components/ui";
@@ -40,9 +41,15 @@ type NavGroup = { title: string; items: NavItem[] };
 export function AppNav({
   user,
   isAdmin,
+  agencyName,
+  isOwner,
 }: {
   user: { name: string; email: string };
   isAdmin: boolean;
+  /** Their agency, shown in the corner in place of the product name. */
+  agencyName: string;
+  /** The platform owner also sees the Agencies console. */
+  isOwner: boolean;
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -78,6 +85,15 @@ export function AppNav({
               { href: "/vendors", label: "Integrations", icon: <Plug size={17} /> },
               { href: "/dnc", label: "Do Not Call", icon: <PhoneOff size={17} /> },
             ],
+          },
+        ]
+      : []),
+    // The platform owner's own section, and only theirs.
+    ...(isOwner
+      ? [
+          {
+            title: "Platform",
+            items: [{ href: "/owner", label: "Agencies", icon: <Building2 size={17} /> }],
           },
         ]
       : []),
@@ -117,7 +133,7 @@ export function AppNav({
         <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5">
           <Logo className="h-8 w-8 shrink-0" />
           <span className="hidden shrink-0 whitespace-nowrap text-[15px] font-semibold tracking-tight text-ink sm:block">
-            Agent Control Center
+            {agencyName}
           </span>
         </Link>
 

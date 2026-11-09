@@ -15,6 +15,8 @@ export default async function AppLayout({
       <AppNav
         user={{ name: user.name, email: user.email }}
         isAdmin={user.role === "ADMIN"}
+        agencyName={user.agency.name}
+        isOwner={user.isPlatformOwner}
       />
       <main className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-9">
         {children}

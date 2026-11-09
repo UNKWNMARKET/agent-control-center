@@ -814,6 +814,7 @@ export async function importLeads(
 
   let imported = 0;
   let skipped = 0;
+  const createdIds: string[] = [];
 
   // Preload the internal DNC list once so each row is a fast in-memory check.
   const dncSet = await loadInternalDncSet();
@@ -852,9 +853,17 @@ export async function importLeads(
         create: { type: "IMPORTED", body: `Imported by ${user.name}`, userId: user.id },
       },
     };
-    await db.lead.create({ data });
+    const created = await db.lead.create({ data });
+    createdIds.push(created.id);
     imported++;
   }
+
+  // Ownership and homestead for everyone who just arrived. Done after the
+  // response, one at a time, because a tax-roll call per row would make a
+  // five-hundred-line import time out.
+  after(async () => {
+    for (const id of createdIds) await lookupNewLead(id, user.agencyId);
+  });
 
   revalidatePath("/leads");
   revalidatePath("/dashboard");

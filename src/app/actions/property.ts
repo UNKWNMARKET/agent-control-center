@@ -96,9 +96,18 @@ export async function lookupNewLead(leadId: string, agencyId?: string): Promise<
   try {
     const db = agencyId ? dbFor(agencyId) : await requireDb();
     const lead = await db.lead.findUnique({ where: { id: leadId } });
-    if (!lead || !lead.address1) return;
+    if (!lead) return;
+    if (!lead.address1) {
+      // Stamped even with nothing to look up, so a retry sweep can tell the
+      // difference between "no address" and "never tried".
+      await db.lead.update({ where: { id: leadId }, data: { propertyCheckedAt: new Date() } });
+      return;
+    }
     const info = await lookupProperty(lead);
-    await db.lead.update({ where: { id: leadId }, data: { property: asJson(info) } });
+    await db.lead.update({
+      where: { id: leadId },
+      data: { property: asJson(info), propertyCheckedAt: new Date() },
+    });
 
     if (permitsConfigured()) {
       const permits = await lookupPermits(lead);
