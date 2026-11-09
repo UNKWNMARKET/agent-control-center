@@ -1,4 +1,5 @@
-import { db } from "./auth";
+import { requireDb } from "./auth";
+import type { ScopedDb } from "./db";
 import { getSetting } from "./settings";
 import { normalizePhone } from "./dnc";
 
@@ -76,9 +77,10 @@ export function canText(lead: {
 }
 
 /** Send the initial auto-text to a brand-new lead (best effort; never throws). */
-export async function maybeSendInitialSms(leadId: string): Promise<void> {
+export async function maybeSendInitialSms(leadId: string, scoped?: ScopedDb): Promise<void> {
   try {
-    if ((await getSetting("sms_automation")) !== "on" || !smsConfigured()) return;
+    const db = scoped ?? (await requireDb());
+    if ((await getSetting("sms_automation", db)) !== "on" || !smsConfigured()) return;
     const lead = await db.lead.findUnique({ where: { id: leadId } });
     if (!lead || lead.initialSmsAt || !canText(lead)) return;
     const agency = (await getSetting("agency_name")) || "your agent";

@@ -21,9 +21,15 @@ export const isSharedCustomer = (status: LeadStatus) => status === "SOLD";
 export const CUSTOMER_WHERE: Prisma.LeadWhereInput = { status: "SOLD" };
 
 export function canViewLead(
-  viewer: { id: string; role: Role },
-  lead: { assignedToId: string | null; status: LeadStatus },
+  viewer: { id: string; role: Role; agencyId: string },
+  lead: { assignedToId: string | null; status: LeadStatus; agencyId: string },
 ): boolean {
+  // The agency comes first and admits no exception. Records fetched by id —
+  // a document, a policy — bypass the scoped client's filter, so this is the
+  // check that stops one agency reaching another's, and an admin is only an
+  // admin of their own agency.
+  if (lead.agencyId !== viewer.agencyId) return false;
+
   if (viewer.role === "ADMIN") return true;
   if (lead.assignedToId === viewer.id) return true;
   return isSharedCustomer(lead.status);

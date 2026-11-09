@@ -95,7 +95,7 @@ enum DncStatus {
 /// One agency's list never suppresses another's calling.
 model DncEntry {
   id        String   @id @default(uuid())
-  agencyId  String
+  agencyId  String   @default("") /// set by the scoped client; the foreign key rejects a miss
   agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   phone     String
   reason    String?
@@ -113,7 +113,7 @@ model DncEntry {
 /// else. Somebody working at two agencies needs two addresses.
 model User {
   id           String   @id @default(uuid())
-  agencyId     String
+  agencyId     String   @default("") /// set by the scoped client; the foreign key rejects a miss
   agency       Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   email        String   @unique
   name         String
@@ -144,7 +144,7 @@ model User {
 /// Only a hash of the token is stored; the raw token goes in the link.
 model Invite {
   id        String    @id @default(uuid())
-  agencyId  String
+  agencyId  String   @default("") /// set by the scoped client; the foreign key rejects a miss
   agency    Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   email     String
   name      String
@@ -178,7 +178,7 @@ model PasswordResetToken {
 /// inbound leads can only ever land in the agency that owns the token.
 model Vendor {
   id           String   @id @default(uuid())
-  agencyId     String
+  agencyId     String   @default("") /// set by the scoped client; the foreign key rejects a miss
   agency       Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   name         String
   slug         String
@@ -198,7 +198,7 @@ model Vendor {
 
 /// Per-agency key/value settings (phone system, auto-assignment, and so on).
 model Setting {
-  agencyId  String
+  agencyId  String   @default("") /// set by the scoped client; the foreign key rejects a miss
   agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   key       String
   value     String
@@ -210,7 +210,7 @@ model Setting {
 /// A prospect or customer.
 model Lead {
   id              String     @id @default(uuid())
-  agencyId        String
+  agencyId        String   @default("") /// set by the scoped client; the foreign key rejects a miss
   agency          Agency     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   firstName       String?
   lastName        String?
@@ -301,7 +301,7 @@ enum PolicyStatus {
 /// puts a policy in front of an agent before it lapses — nobody has to remember.
 model Policy {
   id           String       @id @default(uuid())
-  agencyId     String
+  agencyId     String   @default("") /// set by the scoped client; the foreign key rejects a miss
   agency       Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   leadId       String
   lead         Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)

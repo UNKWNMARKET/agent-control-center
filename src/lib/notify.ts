@@ -1,4 +1,5 @@
-import { db } from "./auth";
+import { requireDb } from "./auth";
+import { dbFor } from "./db";
 import { sendEmail } from "./email";
 
 /**
@@ -8,8 +9,9 @@ import { sendEmail } from "./email";
  * lead — it auto-assigns and waits to be noticed. Internet leads go cold in
  * minutes, so this is the cheapest possible alarm bell.
  */
-export async function notifyNewLead(leadId: string): Promise<void> {
+export async function notifyNewLead(leadId: string, agencyId?: string): Promise<void> {
   try {
+    const db = agencyId ? dbFor(agencyId) : await requireDb();
     const lead = await db.lead.findUnique({
       where: { id: leadId },
       include: { assignedTo: true, vendor: true },

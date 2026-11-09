@@ -1,5 +1,6 @@
 import type { DncStatus } from "@prisma/client";
-import { db } from "./auth";
+import { db, requireDb } from "./auth";
+import type { ScopedDb } from "./db";
 
 /** Normalize any phone input to a 10-digit US number, or null if invalid. */
 export function normalizePhone(raw: string | null | undefined): string | null {
@@ -78,7 +79,9 @@ async function checkProvider(
 export async function scrubPhone(
   rawPhone: string | null | undefined,
   internalSet?: Set<string>,
+  scoped?: ScopedDb,
 ): Promise<ScrubResult> {
+  const db = scoped ?? (await requireDb());
   const phone = normalizePhone(rawPhone);
   if (!phone) return { status: "UNKNOWN", reason: "No valid phone number" };
 
@@ -87,7 +90,7 @@ export async function scrubPhone(
       return { status: "BLOCKED", reason: "On your internal Do-Not-Call list" };
     }
   } else {
-    const entry = await db.dncEntry.findUnique({ where: { phone } });
+    const entry = await db.dncEntry.findFirst({ where: { phone } });
     if (entry) {
       return {
         status: "BLOCKED",
@@ -109,9 +112,14 @@ export async function scrubPhone(
 /** Scrub a phone and return the persistable Lead fields. */
 export async function scrubFields(
   rawPhone: string | null | undefined,
-  internalSet?: Set<string>,
+  internalSet?: Set<string> | ScopedDb,
+  scoped?: ScopedDb,
 ): Promise<{ dncStatus: DncStatus; dncReason: string | null; dncCheckedAt: Date }> {
-  const result = await scrubPhone(rawPhone, internalSet);
+  // The webhook has no session, so it passes its agency handle in place of
+  // the pre-loaded set it has no use for.
+  const set = internalSet instanceof Set ? internalSet : undefined;
+  const handle = internalSet instanceof Set ? scoped : (internalSet as ScopedDb | undefined);
+  const result = await scrubPhone(rawPhone, set, handle);
   return {
     dncStatus: result.status,
     dncReason: result.reason,
@@ -120,7 +128,8 @@ export async function scrubFields(
 }
 
 /** Load the internal DNC list as a Set of normalized numbers (for bulk scrubbing). */
-export async function loadInternalDncSet(): Promise<Set<string>> {
+export async function loadInternalDncSet(scoped?: ScopedDb): Promise<Set<string>> {
+  const db = scoped ?? (await requireDb());
   const entries = await db.dncEntry.findMany({ select: { phone: true } });
   return new Set(entries.map((e) => e.phone));
 }
@@ -132,11 +141,14 @@ export async function addToInternalDnc(
 ): Promise<boolean> {
   const phone = normalizePhone(rawPhone);
   if (!phone) return false;
-  await db.dncEntry.upsert({
-    where: { phone },
-    update: { reason: reason ?? undefined },
-    create: { phone, reason: reason ?? undefined, createdBy },
-  });
+  // Not an upsert: the unique key is (agencyId, phone), which the scoped
+  // client cannot express in a where-clause on its own.
+  const existing = await db.dncEntry.findFirst({ where: { phone }, select: { id: true } });
+  if (existing) {
+    await db.dncEntry.updateMany({ where: { phone }, data: { reason: reason ?? undefined } });
+  } else {
+    await db.dncEntry.create({ data: { phone, reason: reason ?? undefined, createdBy } });
+  }
   return true;
 }
 

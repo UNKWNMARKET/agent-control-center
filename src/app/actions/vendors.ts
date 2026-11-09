@@ -39,10 +39,10 @@ export async function createVendor(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
   }
 
-  let base = slugify(parsed.data.name) || "vendor";
+  const base = slugify(parsed.data.name) || "vendor";
   let slug = base;
   let i = 1;
-  while (await db.vendor.findUnique({ where: { slug } })) {
+  while (await db.vendor.findFirst({ where: { slug } })) {
     slug = `${base}-${i++}`;
   }
 

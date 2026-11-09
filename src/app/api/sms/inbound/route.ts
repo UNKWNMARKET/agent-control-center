@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
+import { unscopedDb } from "@/lib/db";
 import { normalizePhone } from "@/lib/dnc";
 
 export const dynamic = "force-dynamic";
@@ -27,16 +27,20 @@ export async function POST(req: NextRequest) {
   const text = body.trim().toUpperCase();
   const isStop = /^(STOP|STOPALL|UNSUBSCRIBE|CANCEL|END|QUIT|REVOKE|OPTOUT|OPT-OUT)\b/.test(text);
 
+  // A STOP is honoured right across the platform, not just within one
+  // agency. Opting someone out of texts they never asked for costs nothing;
+  // failing to honour an opt-out is a compliance problem. So this is one of
+  // the few deliberate uses of the unscoped client.
   if (phone && isStop) {
-    const all = await prisma.lead.findMany({
+    const all = await unscopedDb.lead.findMany({
       where: { phone: { not: null } },
       select: { id: true, phone: true },
     });
-    const ids = all.filter((l) => normalizePhone(l.phone) === phone).map((l) => l.id);
+    const ids = all.filter((l: { id: string; phone: string | null }) => normalizePhone(l.phone) === phone).map((l) => l.id);
     if (ids.length) {
-      await prisma.lead.updateMany({ where: { id: { in: ids } }, data: { smsOptOut: true } });
-      await prisma.activity.createMany({
-        data: ids.map((leadId) => ({
+      await unscopedDb.lead.updateMany({ where: { id: { in: ids } }, data: { smsOptOut: true } });
+      await unscopedDb.activity.createMany({
+        data: ids.map((leadId: string) => ({
           leadId,
           type: "SMS" as const,
           body: "Lead replied STOP — opted out of texts",

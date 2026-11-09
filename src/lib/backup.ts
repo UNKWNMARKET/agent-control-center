@@ -1,4 +1,4 @@
-import { prisma } from "./db";
+import { dbFor } from "./db";
 import { toCsv } from "./csv";
 
 /**
@@ -15,16 +15,24 @@ import { toCsv } from "./csv";
 
 export type BackupFile = { filename: string; csv: string };
 
-export async function buildBackup(): Promise<BackupFile[]> {
+/**
+ * Built for one agency at a time. Every agency on the platform shares this
+ * database, so a backup that forgot to say whose it was would hand one
+ * agency a copy of everybody else's book.
+ */
+export async function buildBackup(agencyId: string): Promise<BackupFile[]> {
+  const db = dbFor(agencyId);
   const [leads, policies, documents, activities, users, vendors, dnc, settings] = await Promise.all([
-    prisma.lead.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.policy.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.policyDocument.findMany({ orderBy: { uploadedAt: "asc" } }),
-    prisma.activity.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.user.findMany({ orderBy: { name: "asc" } }),
-    prisma.vendor.findMany({ orderBy: { name: "asc" } }),
-    prisma.dncEntry.findMany(),
-    prisma.setting.findMany(),
+    db.lead.findMany({ orderBy: { createdAt: "asc" } }),
+    db.policy.findMany({ orderBy: { createdAt: "asc" } }),
+    // Documents and activities carry no agencyId of their own - they belong
+    // to a lead - so their filter is written out rather than injected.
+    db.policyDocument.findMany({ where: { lead: { agencyId } }, orderBy: { uploadedAt: "asc" } }),
+    db.activity.findMany({ where: { lead: { agencyId } }, orderBy: { createdAt: "asc" } }),
+    db.user.findMany({ orderBy: { name: "asc" } }),
+    db.vendor.findMany({ orderBy: { name: "asc" } }),
+    db.dncEntry.findMany(),
+    db.setting.findMany(),
   ]);
 
   // Names against ids, so the spreadsheets stand alone without joins.

@@ -53,7 +53,7 @@ export async function uploadLeadDocument(
 
   const lead = await db.lead.findUnique({
     where: { id: leadId },
-    select: { id: true, status: true, assignedToId: true },
+    select: { id: true, status: true, assignedToId: true, agencyId: true },
   });
   if (!lead) return { ok: false, message: "That customer no longer exists." };
   // Any agent can file against a sold customer — whoever is helping them is
@@ -102,7 +102,7 @@ export async function getDocumentUrl(documentId: string): Promise<string | null>
   if (!user) return null;
   const doc = await db.policyDocument.findUnique({
     where: { id: documentId },
-    include: { lead: { select: { status: true, assignedToId: true } } },
+    include: { lead: { select: { status: true, assignedToId: true, agencyId: true } } },
   });
   if (!doc) return null;
   // Being signed in isn't enough: the file has to be on a record this agent
@@ -115,8 +115,16 @@ export async function deleteDocument(documentId: string): Promise<UploadResult> 
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Not signed in." };
 
-  const doc = await db.policyDocument.findUnique({ where: { id: documentId } });
+  const doc = await db.policyDocument.findUnique({
+    where: { id: documentId },
+    include: { lead: { select: { agencyId: true, status: true, assignedToId: true } } },
+  });
   if (!doc) return { ok: false, message: "Already gone." };
+  // Fetched by id, which skips the scoped client's filter, so the agency is
+  // checked here before anything else.
+  if (doc.lead && !canViewLead(user, doc.lead)) {
+    return { ok: false, message: "Already gone." };
+  }
   // Only the person who filed it, or an admin, can remove it.
   if (user.role !== "ADMIN" && doc.uploadedById !== user.id) {
     return { ok: false, message: "Only the agent who uploaded this, or an admin, can remove it." };

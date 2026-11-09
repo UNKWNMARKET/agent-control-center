@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { LeadStatus } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { unscopedDb, dbFor } from "@/lib/db";
 import { getSetting } from "@/lib/settings";
 import { sendSms, smsConfigured, renderSms, DEFAULT_FOLLOWUP_SMS, canText } from "@/lib/sms";
 
@@ -21,12 +21,26 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  if ((await getSetting("sms_automation")) !== "on" || !smsConfigured()) {
-    return NextResponse.json({ ok: true, sent: 0, skipped: "automation off or SMS not configured" });
+  if (!smsConfigured()) {
+    return NextResponse.json({ ok: true, sent: 0, skipped: "SMS not configured" });
   }
 
+  // Each agency decides for itself whether automation is on, and only its own
+  // leads are ever considered.
+  const agencies = await unscopedDb.agency.findMany({
+    where: { status: "ACTIVE" },
+    select: { id: true },
+  });
+
   const fiveDaysAgo = new Date(Date.now() - 5 * 86_400_000);
-  const leads = await prisma.lead.findMany({
+  let sentTotal = 0;
+  let candidatesTotal = 0;
+
+  for (const a of agencies) {
+  const db = dbFor(a.id);
+  if ((await getSetting("sms_automation", db)) !== "on") continue;
+
+  const leads = await db.lead.findMany({
     where: {
       initialSmsAt: { not: null, lte: fiveDaysAgo },
       followupSmsAt: null,
@@ -38,15 +52,15 @@ export async function GET(req: NextRequest) {
     take: 100,
   });
 
-  const agency = (await getSetting("agency_name")) || "your agent";
-  const tpl = (await getSetting("sms_template_followup")) || DEFAULT_FOLLOWUP_SMS;
+  const agencyName = (await getSetting("agency_name", db)) || "your agent";
+  const tpl = (await getSetting("sms_template_followup", db)) || DEFAULT_FOLLOWUP_SMS;
 
   let sent = 0;
   for (const lead of leads) {
     if (!canText(lead)) continue;
-    const body = renderSms(tpl, lead, agency);
+    const body = renderSms(tpl, lead, agencyName);
     if (await sendSms(lead.phone!, body)) {
-      await prisma.lead.update({
+      await db.lead.update({
         where: { id: lead.id },
         data: {
           followupSmsAt: new Date(),
@@ -57,5 +71,9 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, candidates: leads.length, sent });
+  sentTotal += sent;
+  candidatesTotal += leads.length;
+  }
+
+  return NextResponse.json({ ok: true, agencies: agencies.length, candidates: candidatesTotal, sent: sentTotal });
 }

@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
-import { db } from "@/lib/auth";
+import { requireDb, db } from "@/lib/auth";
+import { dbFor } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { lookupProperty, readProperty, type PropertyInfo } from "@/lib/property";
 import { lookupPermits, readPermits, permitsConfigured, type PermitInfo } from "@/lib/permits";
@@ -91,8 +92,9 @@ export async function refreshPermits(leadId: string, force = false): Promise<Per
  * Fire-and-forget lookup for a lead that just arrived from a webhook or import.
  * Never throws into the caller — a lead must save even if the roll is down.
  */
-export async function lookupNewLead(leadId: string): Promise<void> {
+export async function lookupNewLead(leadId: string, agencyId?: string): Promise<void> {
   try {
+    const db = agencyId ? dbFor(agencyId) : await requireDb();
     const lead = await db.lead.findUnique({ where: { id: leadId } });
     if (!lead || !lead.address1) return;
     const info = await lookupProperty(lead);

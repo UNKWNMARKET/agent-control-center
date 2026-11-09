@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
+import { unscopedDb, dbFor } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { buildBackup, backupStamp } from "@/lib/backup";
 
@@ -25,16 +25,26 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const admins = await prisma.user.findMany({
+  // Every agency gets its own backup, built from its own rows and sent to its
+  // own admins. One combined file would hand each agency a copy of everybody
+  // else's book.
+  const agencies = await unscopedDb.agency.findMany({
+    where: { status: "ACTIVE" },
+    select: { id: true, name: true },
+  });
+
+  const stamp = backupStamp();
+  let agenciesDone = 0;
+  let sentTotal = 0;
+
+  for (const agency of agencies) {
+  const admins = await dbFor(agency.id).user.findMany({
     where: { role: "ADMIN", active: true },
     select: { email: true, name: true },
   });
-  if (admins.length === 0) {
-    return NextResponse.json({ ok: false, error: "no active admin to send the backup to" });
-  }
+  if (admins.length === 0) continue;
 
-  const files = await buildBackup();
-  const stamp = backupStamp();
+  const files = await buildBackup(agency.id);
   const totalKb = Math.round(files.reduce((s, f) => s + Buffer.byteLength(f.csv, "utf8"), 0) / 1024);
 
   const rows = files
@@ -49,12 +59,12 @@ export async function GET(req: NextRequest) {
     if (!admin.email) continue;
     const ok = await sendEmail({
       to: admin.email,
-      subject: `Agent Control Center backup — ${stamp}`,
+      subject: `${agency.name} backup - ${stamp}`,
       html: `
       <div style="background:#f5f5f7;padding:32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
         <div style="max-width:460px;margin:0 auto;background:#fff;border-radius:18px;border:1px solid #e3e3e6;overflow:hidden;">
           <div style="padding:24px 30px 6px;">
-            <div style="font-size:18px;font-weight:600;color:#1d1d1f;">Daily backup — ${stamp}</div>
+            <div style="font-size:18px;font-weight:600;color:#1d1d1f;">${agency.name} daily backup ${stamp}</div>
           </div>
           <div style="padding:6px 30px 26px;">
             <p style="font-size:15px;color:#424245;line-height:1.5;margin:0 0 14px;">
@@ -73,6 +83,9 @@ export async function GET(req: NextRequest) {
     });
     if (ok) sent++;
   }
+  sentTotal += sent;
+  agenciesDone++;
+  }
 
-  return NextResponse.json({ ok: true, sent, files: files.length, totalKb, date: stamp });
+  return NextResponse.json({ ok: true, agencies: agenciesDone, sent: sentTotal, date: stamp });
 }

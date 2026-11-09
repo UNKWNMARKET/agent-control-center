@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Admins only", { status: 403 });
   }
 
-  const files = await buildBackup();
+  // An admin downloads their own agency's book, never anybody else's.
+  const files = await buildBackup(user.agencyId);
   const stamp = backupStamp();
   const wanted = req.nextUrl.searchParams.get("file");
 
