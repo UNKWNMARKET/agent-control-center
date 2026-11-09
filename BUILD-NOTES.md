@@ -62,10 +62,23 @@ In the order it should be built:
    that fail.
 7. **Provision** — database, Vercel project, domain.
 
-## Hosting note
+## Where it lives
 
-The platform needs its own Supabase project. The organisation is on the free
-plan and already has its two free projects, so this needs **Supabase Pro**
-(about $25/month). That is the right foundation for a product people pay for
-anyway: free projects pause after a week of inactivity, which would take a
-paying agency's CRM offline.
+**Database:** Supabase project `agent-control-center`, ref
+`eybdexkywhtepjopetpi`, us-west-2, on the organisation's Pro plan. The schema
+in `prisma/migrations/` has been applied.
+
+A note on how it was secured. Supabase creates a project with its Data API on,
+which grants the public `anon` and `authenticated` roles read access to every
+table in `public`. The anon key is meant to be published in client code, so as
+created, anyone holding it could have read every agency's leads, customers and
+password hashes through the REST API. This app never uses that API — it talks
+to Postgres through Prisma — so `0002` revokes those grants, stops future
+tables inheriting them, and turns on row level security with no policies for
+those roles, so a restored grant still yields nothing.
+
+**Cost:** Pro is $25/month and this project's micro compute adds $10/month.
+
+Still needed: a Vercel project, and `DATABASE_URL` / `DIRECT_URL` set there
+from Supabase's connection strings. Those carry the database password, so the
+agency owner pastes them into Vercel directly.
