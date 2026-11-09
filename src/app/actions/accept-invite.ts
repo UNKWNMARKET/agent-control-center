@@ -65,12 +65,18 @@ export async function acceptInvite(token: string, formData: FormData): Promise<A
     return { ok: false, message: "There's already a login for that email address." };
   }
 
+  // The very first account on an empty platform is the owner's. It is the
+  // only way the owner console can come into existence, and it can only ever
+  // happen once — after this there is always at least one user.
+  const isFirstEver = (await unscopedDb.user.count()) === 0;
+
   const user = await unscopedDb.user.create({
     data: {
       agencyId: invite.agencyId,
       email: invite.email,
       name: invite.name,
-      role: invite.role,
+      role: isFirstEver ? "ADMIN" : invite.role,
+      isPlatformOwner: isFirstEver,
       passwordHash: await hashPassword(password),
     },
   });
