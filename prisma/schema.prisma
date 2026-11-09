@@ -1,0 +1,387 @@
+// AGENT CONTROL CENTER — database schema (multi-agency)
+//
+// Every agency on the platform shares this database, and every row that
+// belongs to an agency carries its `agencyId`. Nothing is queried without it.
+// The one deliberate exception is the owner console, which looks across
+// agencies on purpose and lives in a single file.
+//
+// Apply changes with `npx prisma migrate dev`, or have the SQL applied to
+// Supabase. Generates the Prisma client used by the app.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// Whether an agency can still be used. Suspending is how an unpaid month is
+/// handled: the data stays, the logins stop.
+enum AgencyStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+/// One insurance agency paying for the platform. Everything else hangs off this.
+model Agency {
+  id   String @id @default(uuid())
+  /// What their staff see in the corner of every page.
+  name String
+  /// Used in URLs and to keep their webhook paths apart.
+  slug String @unique
+
+  status AgencyStatus @default(ACTIVE)
+
+  /// Billing is by hand for now — Zelle, monthly. These are notes to work
+  /// from, not a payment system.
+  monthlyFee   Float?
+  paidThrough  DateTime?
+  billingNotes String?
+
+  /// Where their leads live. Florida today; here so it can widen later.
+  state String @default("FL")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      User[]
+  leads      Lead[]
+  vendors    Vendor[]
+  settings   Setting[]
+  dncEntries DncEntry[]
+  policies   Policy[]
+  invites    Invite[]
+
+  @@index([status])
+}
+
+enum Role {
+  ADMIN
+  AGENT
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  SOLD
+  LOST
+  DNC
+}
+
+enum ActivityType {
+  CREATED
+  IMPORTED
+  NOTE
+  STATUS_CHANGE
+  ASSIGNMENT
+  CALL
+  SMS
+  EMAIL
+  DNC
+}
+
+/// Compliance status of a lead's phone number (Do-Not-Call scrubbing).
+enum DncStatus {
+  UNKNOWN // not checked, or no valid phone
+  OK // safe to call/text
+  BLOCKED // on a do-not-call / litigator list
+}
+
+/// An agency's internal do-not-call suppression list (normalized 10-digit numbers).
+/// One agency's list never suppresses another's calling.
+model DncEntry {
+  id        String   @id @default(uuid())
+  agencyId  String
+  agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  phone     String
+  reason    String?
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  @@unique([agencyId, phone])
+  @@index([agencyId])
+}
+
+/// Staff and admins who log in.
+///
+/// Email is unique across the whole platform, not per agency: one person has
+/// one login, which is what lets the sign-in page ask for an email and nothing
+/// else. Somebody working at two agencies needs two addresses.
+model User {
+  id           String   @id @default(uuid())
+  agencyId     String
+  agency       Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(AGENT)
+  active       Boolean  @default(true)
+  monthlyGoal  Int? // monthly sales (sold) target, for goal tracking
+
+  /// The platform owner. Sees the owner console and nothing else special —
+  /// inside an agency they are an ordinary admin of their own agency.
+  isPlatformOwner Boolean @default(false)
+
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  assignedLeads Lead[]               @relation("AssignedLeads")
+  activities    Activity[]
+  resetTokens   PasswordResetToken[]
+  soldPolicies  Policy[]             @relation("SoldPolicies")
+
+  @@index([agencyId])
+  @@index([agencyId, active])
+}
+
+/// An unused seat. The agency admin sends one of these to bring staff on, and
+/// the owner console sends one to stand up a new agency's first admin.
+/// Only a hash of the token is stored; the raw token goes in the link.
+model Invite {
+  id        String    @id @default(uuid())
+  agencyId  String
+  agency    Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  email     String
+  name      String
+  role      Role      @default(AGENT)
+  tokenHash String    @unique
+  expiresAt DateTime
+  acceptedAt DateTime?
+  invitedBy String?
+  createdAt DateTime  @default(now())
+
+  @@index([agencyId])
+  @@index([email])
+}
+
+/// One-time, expiring tokens for the email "forgot password" flow.
+/// Only a hash of the token is stored; the raw token is emailed to the user.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+/// Lead sources an agency buys from, e.g. EverQuote, AllWebLeads, Smart
+/// Financial. Each agency sets up its own and gets its own webhook token, so
+/// inbound leads can only ever land in the agency that owns the token.
+model Vendor {
+  id           String   @id @default(uuid())
+  agencyId     String
+  agency       Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  name         String
+  slug         String
+  /// Globally unique and secret: it is what identifies the agency on an
+  /// inbound webhook, so it is never guessable and never shared.
+  webhookToken String   @unique
+  active       Boolean  @default(true)
+  costPerLead  Float? // what you pay this source per lead, for ROI reporting
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  leads Lead[]
+
+  @@unique([agencyId, slug])
+  @@index([agencyId])
+}
+
+/// Per-agency key/value settings (phone system, auto-assignment, and so on).
+model Setting {
+  agencyId  String
+  agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  key       String
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@id([agencyId, key])
+}
+
+/// A prospect or customer.
+model Lead {
+  id              String     @id @default(uuid())
+  agencyId        String
+  agency          Agency     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  firstName       String?
+  lastName        String?
+  email           String?
+  phone           String?
+  phoneSecondary  String?
+  address1        String?
+  address2        String?
+  city            String?
+  state           String?
+  zip             String?
+  dob             String?
+  maritalStatus   String?
+  product         String? // line of business: Auto, Home, Life, etc.
+  status          LeadStatus @default(NEW)
+  premium         Float?
+  carrier         String? // insurance carrier for a sold/quoted policy
+  policyNumber    String?
+  effectiveDate   String? // policy effective date (kept as text like dob)
+  policyExpiresAt DateTime? // X-date: when their current policy expires
+  currentCarrier  String? // who they're insured with today
+  notes           String?
+  externalId      String? // the vendor's own lead id
+  source          String? // display label, e.g. "EverQuote - Auto"
+  rawPayload      Json? // original vendor payload, kept verbatim
+  vehicles        Json? // listed vehicles: [{ year, make, model, vin }]
+  property        Json? // cached state tax-roll lookup: ownership, homestead, year built…
+  permits         Json? // cached building permit history, roofing flagged
+
+  /// When the property lookup last ran. Every new record gets one, so this is
+  /// also how a retry knows the first attempt happened at all.
+  propertyCheckedAt DateTime?
+
+  // Do-Not-Call compliance (drives the green/red dot)
+  dncStatus    DncStatus @default(UNKNOWN)
+  dncReason    String?
+  dncCheckedAt DateTime?
+
+  // Workflow
+  followUpAt DateTime?
+  tags       String[]  @default([])
+
+  vendorId String?
+  vendor   Vendor? @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+
+  assignedToId String?
+  assignedTo   User?   @relation("AssignedLeads", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  contactedAt DateTime?
+  soldAt      DateTime?
+
+  // SMS automation
+  smsOptOut     Boolean   @default(false)
+  initialSmsAt  DateTime?
+  followupSmsAt DateTime?
+
+  /// True once this person is a customer: a policy was written, or they were
+  /// added directly as an existing customer. Customers are searchable by every
+  /// agent in their own agency, not just the one they're assigned to.
+  isCustomer Boolean @default(false)
+  drivers    Json? // listed drivers: [{ name, dob, licenseNumber, relationship }]
+
+  activities Activity[]
+  policies   Policy[]
+  documents  PolicyDocument[]
+
+  @@index([agencyId])
+  @@index([agencyId, status])
+  @@index([agencyId, assignedToId])
+  @@index([agencyId, createdAt])
+  @@index([agencyId, followUpAt])
+  @@index([agencyId, dncStatus])
+  @@index([vendorId])
+  @@index([propertyCheckedAt])
+}
+
+enum PolicyStatus {
+  ACTIVE
+  CANCELLED
+}
+
+/// A policy an agency has written. Created when an agent marks a lead sold,
+/// and kept under Book of business for the life of the book.
+///
+/// Expiration is derived from the effective date plus the term, which is what
+/// puts a policy in front of an agent before it lapses — nobody has to remember.
+model Policy {
+  id           String       @id @default(uuid())
+  agencyId     String
+  agency       Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  leadId       String
+  lead         Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  product      String? // Auto, Home, Umbrella…
+  carrier      String?
+  policyNumber String?
+  premium      Float? // annual premium
+  termMonths   Int          @default(12) // 6 or 12
+  effectiveAt  DateTime
+  expiresAt    DateTime // effectiveAt + termMonths, stored so it can be queried
+  status       PolicyStatus @default(ACTIVE)
+
+  cancelledAt  DateTime?
+  cancelReason String?
+
+  soldById String?
+  soldBy   User?   @relation("SoldPolicies", fields: [soldById], references: [id], onDelete: SetNull)
+
+  /// What the agent declared at the point of sale. Kept because it decides
+  /// which documents underwriting needs, and so the record shows why one
+  /// wasn't asked for.
+  autoIncluded      Boolean @default(false)
+  homeownerDiscount Boolean @default(false)
+  packagePolicy     Boolean @default(false)
+  priorAutoDeclared Boolean @default(false)
+  windMitDiscount   Boolean @default(false)
+
+  notes     String?
+  documents PolicyDocument[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agencyId])
+  @@index([agencyId, status])
+  @@index([agencyId, expiresAt])
+  @@index([soldById])
+  @@index([leadId])
+}
+
+/// A file attached to a customer — declarations page, VIN check, ID cards.
+/// The bytes live in object storage; this row is the catalogue entry.
+/// Reached only through its lead, which is what keeps it inside its agency.
+model PolicyDocument {
+  id String @id @default(uuid())
+
+  /// Documents belong to the customer; tying one to a specific policy is optional,
+  /// so a licence or prior dec page can be filed before anything is written.
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  policyId String?
+  policy   Policy? @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  /// Which piece of required paperwork this is: VIN_CHECK, PRIOR_AUTO,
+  /// WIND_MIT, PRIOR_HOME, HOME_OWNERSHIP or OTHER.
+  kind String?
+
+  filename     String
+  storagePath  String
+  contentType  String?
+  sizeBytes    Int?
+  uploadedById String?
+  uploadedAt   DateTime @default(now())
+
+  @@index([policyId])
+  @@index([leadId])
+  @@index([leadId, kind])
+}
+
+/// Timeline of everything that happens to a lead.
+model Activity {
+  id        String       @id @default(uuid())
+  leadId    String
+  lead      Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type      ActivityType @default(NOTE)
+  body      String
+  createdAt DateTime     @default(now())
+
+  @@index([leadId])
+}
