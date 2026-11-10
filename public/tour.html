@@ -1,0 +1,1278 @@
+<title>Agent Control Center Tour</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   AGENT CONTROL CENTER — guided product tour
+   Layout: one fixed 1120x630 product stage, scaled to fit its box, with the
+   narration and transport below it at native size so they stay readable on a
+   phone. Deliberately single-theme: this is a screening room, dark on any
+   host, while the product shown inside keeps its own light interface.
+   ───────────────────────────────────────────────────────────────────────── */
+:root{
+  color-scheme: dark;
+  --room:#0a1220;
+  --room-2:#101c30;
+  --room-line:#1e3047;
+  --room-ink:#eaf1fb;
+  --room-ink-2:#9fb3cd;
+  --room-faint:#6a8099;
+  --beam:#3d9bff;
+
+  /* the product's own palette, used only inside the stage */
+  --canvas:#f2f2f5; --surface:#ffffff; --surface-2:#fafafa;
+  --ink:#1d1d1f; --ink-2:#424245; --muted:#6e6e73; --faint:#86868b;
+  --line:#e3e3e6; --line-2:#d2d2d7;
+  --accent:#0071e3; --accent-soft:#e8f1fd;
+  --pos:#1d9e54; --pos-soft:#e6f5ec;
+  --warning:#b25000; --warning-soft:#fdeede;
+  --danger:#d70015; --danger-soft:#fdecee;
+  --info:#5e5ce6; --info-soft:#ecebfd;
+
+  --d:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --b:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --m:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--room);color:var(--room-ink);font-family:var(--b);margin:0;
+  background-image:radial-gradient(900px 480px at 50% -12%,rgba(61,155,255,.13),transparent 70%)}
+.wrap{max-width:1180px;margin:0 auto;padding-block:clamp(18px,3.4vw,40px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* ── masthead ───────────────────────────────────────────────────────── */
+.mast{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px;margin-bottom:18px}
+.mast h1{font-family:var(--d);font-weight:600;font-size:clamp(1.5rem,3.4vw,2.1rem);margin:0;letter-spacing:-.02em;text-wrap:balance}
+.mast p{margin:.35rem 0 0;color:var(--room-ink-2);font-size:.92rem;max-width:52ch;line-height:1.5}
+.runtime{margin-left:auto;font-family:var(--m);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--room-faint);border:1px solid var(--room-line);border-radius:999px;padding:.42rem .75rem;white-space:nowrap}
+
+/* ── the stage ──────────────────────────────────────────────────────── */
+.stageBox{position:relative;width:100%;border-radius:16px;overflow:hidden;background:#06101c;
+  border:1px solid var(--room-line);box-shadow:0 30px 70px -30px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.06)}
+.stageBox::before{content:"";display:block;padding-top:56.25%}
+.stage{position:absolute;top:0;left:0;width:1120px;height:630px;transform-origin:top left}
+
+.chrome{position:absolute;inset:0;display:flex;flex-direction:column;background:#dfe3e8}
+.chbar{height:38px;flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;
+  background:linear-gradient(#f3f5f7,#e6eaee);border-bottom:1px solid #cfd5dc}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.urlbar{flex:1;height:23px;border-radius:6px;background:#fff;border:1px solid #d3d9e0;display:flex;align-items:center;
+  justify-content:center;gap:6px;font-size:11.5px;color:#5c6672;max-width:420px;margin:0 auto}
+.lock{width:8px;height:7px;border:1.4px solid #4d9a63;border-radius:1.5px;border-bottom-width:4px;flex:none}
+.viewport{position:relative;flex:1;overflow:hidden;background:var(--canvas)}
+.panes{position:absolute;left:0;right:0;bottom:0;top:46px}
+.panes.full{top:0}
+.pane{position:absolute;inset:0;opacity:0;overflow-y:auto;scrollbar-width:none;transition:opacity .5s ease;pointer-events:none}
+.pane::-webkit-scrollbar{display:none}
+.pane.on{opacity:1}
+.inner{padding:17px 22px 44px}
+
+/* ── product chrome ─────────────────────────────────────────────────── */
+.nav{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;gap:3px;padding:0 16px;
+  background:rgba(255,255,255,.84);backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid var(--line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);z-index:3}
+.nav[hidden]{display:none}
+.brand{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--ink);margin-right:13px;white-space:nowrap}
+.brand i{width:17px;height:17px;border-radius:5px;background:linear-gradient(145deg,#0a84ff,#0062cc);flex:none;
+  box-shadow:0 1px 3px rgba(0,98,204,.5),inset 0 1px 0 rgba(255,255,255,.35)}
+.nitem{font-size:12.2px;color:var(--muted);padding:5px 8.5px;border-radius:8px;white-space:nowrap;font-weight:500}
+.nitem.cur{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nright{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);white-space:nowrap}
+.av{width:23px;height:23px;border-radius:50%;background:linear-gradient(145deg,#8fb8e8,#4c7fc0);color:#fff;
+  font-size:9.6px;font-weight:600;display:grid;place-items:center;flex:none}
+
+/* ── product building blocks ────────────────────────────────────────── */
+.ph{display:flex;align-items:flex-end;gap:14px;margin-bottom:13px}
+.ph h2{font-size:19px;font-weight:600;color:var(--ink);margin:0;letter-spacing:-.02em}
+.ph p{margin:3px 0 0;font-size:12.2px;color:var(--muted)}
+.ph .sp{margin-left:auto;display:flex;gap:7px;align-items:center}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px -10px rgba(0,0,0,.09),inset 0 1px 0 rgba(255,255,255,.9)}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.g2{display:grid;grid-template-columns:1.5fr 1fr;gap:11px}
+.stack{display:grid;gap:11px}
+.tile{padding:12px 14px}
+.tile .ic{float:right;width:26px;height:26px;border-radius:8px;background:var(--accent-soft);color:var(--accent);
+  display:grid;place-items:center;font-size:12px;font-weight:700}
+.tile .n{font-size:26px;font-weight:600;color:var(--ink);letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.15}
+.tile .l{font-size:11.5px;color:var(--muted);margin-top:3px}
+.sec{padding:12px 14px}
+.sec h3{font-size:12.5px;font-weight:600;color:var(--ink);margin:0 0 8px;display:flex;align-items:center;gap:6px}
+.sec h3 .more{margin-left:auto;font-size:11.2px;color:var(--accent);font-weight:500}
+.row{display:flex;align-items:center;gap:9px;padding:6.5px 0;border-top:1px solid var(--line);font-size:12.1px;color:var(--ink-2)}
+.row:first-of-type{border-top:0}
+.row .nm{font-weight:500;color:var(--ink);white-space:nowrap}
+.row .sm{font-size:11.2px;color:var(--faint);white-space:nowrap}
+.row .rt{margin-left:auto;color:var(--muted);font-size:11.4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row .w{width:88px;flex:none;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2.5px 8px;font-size:10.5px;
+  font-weight:600;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);white-space:nowrap}
+.c-new{background:var(--accent-soft);color:var(--accent)}
+.c-work{background:var(--info-soft);color:var(--info)}
+.c-sold{background:var(--pos-soft);color:var(--pos)}
+.c-lost{background:#f1f1f3;color:var(--faint)}
+.c-warn{background:var(--warning-soft);color:var(--warning)}
+.c-bad{background:var(--danger-soft);color:var(--danger)}
+.score{font-family:var(--m);font-size:10.4px;font-weight:500;border-radius:7px;padding:2.5px 6px;
+  background:var(--pos-soft);color:var(--pos);box-shadow:inset 0 0 0 1px rgba(29,158,84,.18)}
+.score.mid{background:#fdf4e3;color:#8a5a00;box-shadow:inset 0 0 0 1px rgba(138,90,0,.16)}
+.score.low{background:#f1f1f3;color:var(--faint);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:999px;font-size:12px;font-weight:500;padding:6px 13px;white-space:nowrap}
+.bp{background:linear-gradient(180deg,#0a84ff,#0071e3);color:#fff;
+  box-shadow:0 1px 1px rgba(0,0,0,.07),0 4px 14px -2px rgba(0,113,227,.4),inset 0 1px 0 rgba(255,255,255,.26)}
+.bs{background:rgba(0,0,0,.05);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}
+.bd{background:#eaeaec;color:#a8a8ad;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+.dnc{width:8px;height:8px;border-radius:50%;flex:none;background:var(--pos);box-shadow:0 0 0 2.5px rgba(29,158,84,.14)}
+.dnc.no{background:var(--danger);box-shadow:0 0 0 2.5px rgba(215,0,21,.14)}
+.lab{font-family:var(--m);font-size:9.3px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);display:block}
+.val{font-size:12.5px;color:var(--ink);font-weight:500;margin-top:2px}
+.val.warn{color:var(--warning)}
+.fieldrow{display:grid;grid-template-columns:repeat(4,1fr);gap:11px 14px}
+.fieldrow.three{grid-template-columns:repeat(3,1fr)}
+.tl{display:flex;gap:9px;padding:6.5px 0;border-top:1px solid var(--line)}
+.tl:first-of-type{border-top:0}
+.tl .tk{width:21px;height:21px;border-radius:7px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);
+  display:grid;place-items:center;font-size:9px;font-weight:600;color:var(--muted);flex:none}
+.tl .tb{font-size:11.9px;color:var(--ink-2);line-height:1.45}
+.tl .tm{font-size:10.3px;color:var(--faint);margin-top:1px;font-variant-numeric:tabular-nums}
+.inp{height:29px;border:1px solid var(--line-2);border-radius:9px;background:#fff;display:flex;align-items:center;
+  justify-content:space-between;padding:0 10px;font-size:11.8px;color:var(--ink);box-shadow:inset 0 1px 2px rgba(0,0,0,.03)}
+.inp.hint{color:var(--faint)}
+.inp .cv{color:var(--faint);font-size:9px}
+.filters{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:9px;margin-bottom:11px}
+.tabs{display:flex;gap:7px;margin-bottom:11px;flex-wrap:wrap}
+.tab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:10px;
+  padding:5.5px 11px;font-size:11.8px;font-weight:500;color:var(--ink-2)}
+.tab.cur{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.tab b{font-weight:500;font-size:10.4px;color:var(--faint)}
+.tab.cur b{color:var(--accent)}
+
+/* the sold dialog */
+.scrim{position:absolute;inset:0;background:rgba(10,16,24,.3);display:grid;place-items:center;padding:14px}
+.modal{width:636px;background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--line);
+  box-shadow:0 4px 10px rgba(0,0,0,.1),0 40px 80px -22px rgba(0,0,0,.5)}
+.mh{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px}
+.mh h4{margin:0;font-size:13.5px;font-weight:600;color:var(--ink)}
+.mh .step{margin-left:auto;font-family:var(--m);font-size:9.6px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.mb{padding:13px 16px;display:grid;gap:10px}
+.mf{padding:10px 16px;border-top:1px solid var(--line);background:var(--surface-2);display:flex;align-items:center;gap:10px}
+.mf .note{font-size:11.2px;color:var(--muted)}
+.ask{display:flex;align-items:center;gap:12px;font-size:12.2px;color:var(--ink-2)}
+.ask .q{flex:1}
+.seg{display:flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden;font-size:11.2px;font-weight:600;flex:none}
+.seg span{padding:4px 11px;color:var(--muted);background:#fff}
+.seg span.on{background:var(--accent);color:#fff}
+.need{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:10px;padding:7.5px 11px;
+  font-size:11.9px;color:var(--ink-2);background:var(--surface-2)}
+.need .tag{margin-left:auto;font-size:10.2px;font-weight:600}
+.need.miss{border-color:#eec7a6;background:var(--warning-soft);color:var(--warning)}
+.need.done{border-color:#bbe4cb;background:var(--pos-soft);color:var(--pos)}
+.need .px{width:15px;height:15px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:9px;font-weight:700;
+  background:rgba(0,0,0,.05)}
+.need.done .px{background:var(--pos);color:#fff}
+.need.miss .px{background:var(--warning);color:#fff}
+.blockmsg{display:flex;align-items:center;gap:9px;background:var(--danger-soft);color:var(--danger);border-radius:10px;
+  padding:9px 12px;font-size:12px;font-weight:500;box-shadow:inset 0 0 0 1px rgba(215,0,21,.14)}
+
+/* title / statement panes */
+.titlepane{position:absolute;inset:0;background:radial-gradient(780px 430px at 50% 4%,rgba(61,155,255,.2),transparent 68%),#09101c;
+  display:grid;place-content:center;justify-items:center;text-align:center;padding:0 64px;gap:13px}
+.titlepane .kick{font-family:var(--m);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--beam)}
+.titlepane h3{font-family:var(--d);font-weight:600;font-size:44px;line-height:1.08;margin:0;color:#fff;
+  letter-spacing:-.025em;text-wrap:balance;max-width:21ch}
+.titlepane p{margin:0;font-size:15.5px;color:#a9bed6;max-width:54ch;line-height:1.55}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;width:100%;max-width:850px;margin-top:5px}
+.leak{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:15px;text-align:left}
+.leak .n{font-family:var(--m);font-size:9.6px;color:var(--beam);letter-spacing:.17em}
+.leak h5{margin:7px 0 5px;font-size:14.5px;color:#fff;font-weight:600}
+.leak p{font-size:12.1px;color:#9ab0c8;margin:0;max-width:none;line-height:1.5}
+.leak .bar{height:4px;border-radius:999px;background:var(--beam);opacity:.9;margin-bottom:10px}
+.leak.mine .bar{background:#2bbd6f}
+.priceline{display:flex;align-items:baseline;gap:11px;justify-content:center;flex-wrap:wrap}
+.priceline .big{font-family:var(--d);font-size:62px;font-weight:700;color:#fff;letter-spacing:-.03em;line-height:1}
+.priceline .per{font-size:15px;color:#a9bed6}
+.incl{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:3px}
+.incl span{font-size:12px;color:#bdd0e6;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;padding:5px 12px}
+
+/* spotlight, cursor, badge */
+.spot{position:relative;z-index:2;box-shadow:0 0 0 2px var(--accent),0 0 0 7px rgba(0,113,227,.17),
+  0 18px 40px -14px rgba(0,0,0,.32)!important;border-radius:12px;transition:box-shadow .34s ease}
+.cursor{position:absolute;top:0;left:0;width:20px;height:20px;pointer-events:none;z-index:9;opacity:0;
+  transition:transform .65s cubic-bezier(.3,.9,.25,1),opacity .3s ease;transform-origin:top left}
+.cursor.show{opacity:1}
+.cursor::after{content:"";position:absolute;left:-8px;top:-8px;width:34px;height:34px;border-radius:50%;
+  border:2px solid var(--accent);opacity:0}
+.cursor.tap::after{animation:tap .55s ease-out}
+@keyframes tap{from{transform:scale(.25);opacity:.85}to{transform:scale(1);opacity:0}}
+.badge{position:absolute;z-index:8;background:#0d1b2d;color:#fff;border:1px solid rgba(255,255,255,.17);border-radius:10px;
+  padding:7px 11px;font-size:11.6px;font-weight:500;box-shadow:0 14px 30px -10px rgba(0,0,0,.7);opacity:0;
+  transition:opacity .35s ease;max-width:250px;line-height:1.42}
+.badge.show{opacity:1}
+.badge b{color:var(--beam);font-weight:600}
+
+/* ── narration + transport ──────────────────────────────────────────── */
+.below{margin-top:14px;display:grid;gap:12px}
+.cap{background:var(--room-2);border:1px solid var(--room-line);border-radius:14px;padding:15px 18px;min-height:116px;
+  display:grid;align-content:start;gap:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.cap .ch{font-family:var(--m);font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--beam)}
+.cap .tx{font-size:clamp(.97rem,1.5vw,1.13rem);line-height:1.53;color:var(--room-ink);max-width:80ch;text-wrap:pretty}
+.track{position:relative;height:7px;border-radius:999px;background:#17263c;cursor:pointer;overflow:hidden}
+.fill{position:absolute;top:0;bottom:0;left:0;width:0;background:linear-gradient(90deg,#2b7fe0,var(--beam));border-radius:999px}
+.ticks{position:absolute;inset:0;z-index:2}
+.ticks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.2)}
+.bar2{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ctl{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:38px;min-width:38px;padding:0 13px;
+  border-radius:999px;background:#17263c;color:var(--room-ink);border:1px solid var(--room-line);font:inherit;
+  font-size:.86rem;font-weight:500;cursor:pointer;transition:background .18s ease,transform .12s ease}
+.ctl:hover{background:#1d3150}
+.ctl:active{transform:scale(.96)}
+.ctl.main{background:linear-gradient(180deg,#4aa5ff,#1d7fe0);border-color:transparent;color:#04121f;font-weight:600;padding:0 19px}
+.ctl[aria-pressed="true"]{background:rgba(61,155,255,.18);border-color:rgba(61,155,255,.5);color:#cfe6ff}
+.ctl:focus-visible{outline:2px solid var(--beam);outline-offset:2px}
+.time{font-family:var(--m);font-size:.78rem;color:var(--room-faint);font-variant-numeric:tabular-nums;margin-left:auto}
+.vsel{height:38px;border-radius:999px;background:#17263c;color:var(--room-ink);border:1px solid var(--room-line);
+  font:inherit;font-size:.82rem;padding:0 11px;max-width:220px;cursor:pointer}
+.vsel:focus-visible{outline:2px solid var(--beam);outline-offset:2px}
+.vol{display:inline-flex;align-items:center;gap:9px;height:38px;padding:0 14px;border-radius:999px;
+  background:#17263c;border:1px solid var(--room-line)}
+.vol b{font-size:.92rem;line-height:1;font-weight:400;width:16px;text-align:center;cursor:pointer;user-select:none}
+.vol input{width:84px;accent-color:var(--beam);cursor:pointer;margin:0}
+.vol input:focus-visible{outline:2px solid var(--beam);outline-offset:3px}
+.vol em{font-style:normal;font-family:var(--m);font-size:.7rem;color:var(--room-faint);width:30px;text-align:right;
+  font-variant-numeric:tabular-nums}
+body.read .vol{opacity:.4;pointer-events:none}
+
+/* Teleprompter mode — the narration set large enough to read off the screen
+   while you record your own voice over it. */
+.linebar{height:3px;border-radius:999px;background:#17263c;overflow:hidden;display:none}
+.linebar i{display:block;height:100%;width:0;background:#f0a93b;border-radius:999px}
+body.read .linebar{display:block}
+body.read .cap{min-height:176px;background:#060d18;border-color:#2a435f;padding:20px 22px}
+body.read .cap .tx{font-size:clamp(1.14rem,2.45vw,1.7rem);line-height:1.46;font-weight:500;color:#fff;max-width:none}
+body.read .cap .ch{color:#f0a93b}
+body.read .vsel,body.read #voice{opacity:.4;pointer-events:none}
+.count{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:rgba(6,13,24,.94);
+  font-family:var(--d);font-size:clamp(3rem,13vw,7.5rem);font-weight:700;color:#fff}
+.count[hidden]{display:none}
+
+.poster{position:absolute;inset:0;z-index:12;display:grid;place-content:center;justify-items:center;gap:15px;text-align:center;
+  background:radial-gradient(700px 400px at 50% 32%,rgba(61,155,255,.22),transparent 70%),rgba(6,13,24,.94);
+  padding:0 clamp(18px,5vw,64px);transition:opacity .45s ease}
+.poster.gone{opacity:0;pointer-events:none}
+.poster .kick{font-family:var(--m);font-size:clamp(9px,1.1vw,11px);letter-spacing:.24em;text-transform:uppercase;color:var(--beam)}
+.poster h3{font-family:var(--d);font-weight:600;font-size:clamp(1.3rem,4.1vw,2.9rem);margin:0;color:#fff;
+  letter-spacing:-.025em;line-height:1.1;text-wrap:balance}
+.poster p{margin:0;color:#a9bed6;font-size:clamp(.78rem,1.6vw,1rem);max-width:54ch;line-height:1.55}
+.play{display:inline-flex;align-items:center;gap:11px;border:0;cursor:pointer;font:inherit;font-weight:600;
+  font-size:clamp(.86rem,1.7vw,1.02rem);color:#04121f;background:linear-gradient(180deg,#5cb0ff,#1d7fe0);
+  padding:.78rem 1.5rem;border-radius:999px;box-shadow:0 14px 34px -10px rgba(29,127,224,.8)}
+.play:active{transform:scale(.97)}
+
+.chapters{border:1px solid var(--room-line);border-radius:14px;background:var(--room-2);overflow:hidden;margin-top:14px}
+.chapters>summary{cursor:pointer;padding:13px 16px;font-size:.88rem;font-weight:600;color:var(--room-ink);
+  list-style:none;display:flex;align-items:center;gap:9px}
+.chapters>summary::-webkit-details-marker{display:none}
+.chapters>summary::after{content:"▾";margin-left:auto;color:var(--room-faint);font-size:.8rem}
+.chapters[open]>summary::after{content:"▴"}
+.clist{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:1px;background:var(--room-line);
+  border-top:1px solid var(--room-line)}
+.clist button{background:var(--room-2);border:0;text-align:left;padding:11px 14px;cursor:pointer;font:inherit;
+  display:flex;gap:10px;align-items:baseline;color:var(--room-ink-2);font-size:.83rem;transition:background .15s ease}
+.clist button:hover{background:#16263c;color:var(--room-ink)}
+.clist button.cur{background:rgba(61,155,255,.13);color:#cfe6ff}
+.clist button span{font-family:var(--m);font-size:.7rem;color:var(--room-faint);flex:none;font-variant-numeric:tabular-nums}
+.clist button.cur span{color:var(--beam)}
+.foot{margin-top:18px;padding-top:15px;border-top:1px solid var(--room-line);color:var(--room-faint);font-size:.8rem;
+  display:grid;gap:5px;line-height:1.5}
+.foot b{color:var(--room-ink-2);font-weight:600}
+@media (max-width:640px){
+  .cap{min-height:132px}
+  .time{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  .pane,.cursor,.badge,.poster,.spot{transition:none}
+  .cursor.tap::after{animation:none}
+}
+</style>
+
+<div class="wrap">
+  <div class="mast">
+    <div>
+      <h1>Agent Control Center</h1>
+      <p>A guided walkthrough of the whole system, start to finish — how a lead arrives, how it gets sold, and how the book gets kept.</p>
+    </div>
+    <div class="runtime" id="runtime">loading</div>
+  </div>
+
+  <div class="stageBox">
+    <div class="stage" id="stage">
+      <div class="chrome">
+        <div class="chbar">
+          <span class="dot" style="background:#ff5f57"></span>
+          <span class="dot" style="background:#febc2e"></span>
+          <span class="dot" style="background:#28c840"></span>
+          <div class="urlbar"><span class="lock"></span>app.agentcontrolcenter.com</div>
+        </div>
+        <div class="viewport" id="viewport">
+          <div class="nav" id="nav">
+            <div class="brand"><i></i>Sunshine State Insurance</div>
+            <span class="nitem" data-n="dashboard">Dashboard</span>
+            <span class="nitem" data-n="leads">Leads</span>
+            <span class="nitem" data-n="followups">Follow-ups</span>
+            <span class="nitem" data-n="renewals">Renewals</span>
+            <span class="nitem" data-n="customers">Customers</span>
+            <span class="nitem" data-n="book">Book of business</span>
+            <span class="nitem" data-n="tools">Tools ⌄</span>
+            <div class="nright">Dana Reyes <span class="av">DR</span></div>
+          </div>
+          <div class="panes" id="panes"></div>
+          <div class="cursor" id="cursor" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 20 20"><path d="M2 1.4 15.2 11l-5.6.6 3 5.6-2.3 1.2-3-5.7-3.6 4.3z" fill="#fff" stroke="#15335c" stroke-width="1.3" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="badge" id="badge"></div>
+        </div>
+      </div>
+    </div>
+    <div class="poster" id="poster">
+      <div class="kick">Product tour · 11 chapters</div>
+      <h3>The CRM that will not let a sale fall apart</h3>
+      <p>Built inside a working Florida insurance agency. Seven minutes, narrated, every feature.</p>
+      <button class="play" id="playBtn" type="button"><svg width="15" height="17" viewBox="0 0 15 17" aria-hidden="true"><path d="M1 1.3 14 8.5 1 15.7z" fill="currentColor"/></svg> Play the tour</button>
+    </div>
+    <div class="count" id="count" hidden>3</div>
+  </div>
+
+  <div class="below">
+    <div class="cap">
+      <div class="ch" id="chLabel">—</div>
+      <p class="tx" id="narration">Press play to begin.</p>
+    </div>
+    <div class="track" id="track" role="slider" tabindex="0" aria-label="Tour position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="fill" id="fill"></div>
+      <div class="ticks" id="ticks"></div>
+    </div>
+    <div class="linebar"><i id="lineFill"></i></div>
+    <div class="bar2">
+      <button class="ctl main" id="toggle" type="button">Play</button>
+      <button class="ctl" id="prev" type="button" title="Previous chapter" aria-label="Previous chapter">‹‹</button>
+      <button class="ctl" id="next" type="button" title="Next chapter" aria-label="Next chapter">››</button>
+      <button class="ctl" id="restart" type="button">Restart</button>
+      <button class="ctl" id="voice" type="button" aria-pressed="false">🔊 Narration</button>
+      <select class="vsel" id="vpick" aria-label="Narration voice"></select>
+      <label class="vol"><b id="volIcon" role="button" tabindex="0" title="Mute">🔊</b><input type="range" id="volRange" min="0" max="100" value="100" aria-label="Narration volume"><em id="volNum">100</em></label>
+      <button class="ctl" id="readmode" type="button" aria-pressed="false" title="Big-text teleprompter for recording your own voice">🎙 Read it yourself</button>
+      <div class="time" id="time">0:00 / 0:00</div>
+    </div>
+  </div>
+
+  <details class="chapters">
+    <summary>Chapters — jump to any part</summary>
+    <div class="clist" id="clist"></div>
+  </details>
+
+  <div class="foot">
+    <div><b>To record it in your own voice:</b> press <b>🎙 Read it yourself</b>. The narration jumps to teleprompter size, every scene gets 30% longer so you are not rushed, and the amber bar under the timeline shows how much of the current line is left. Start your screen recorder (Windows: ⊞&nbsp;+&nbsp;Alt&nbsp;+&nbsp;R), press play, wait for the 3‑2‑1, and read. Your voice beats any computer voice for this.</div>
+    <div><b>To use the built-in voice instead:</b> turn on <b>🔊 Narration</b> and pick the best voice your computer has from the dropdown. How good that is depends entirely on which voices are installed on the machine playing it.</div>
+    <div>The screens are the real interface. Names, premiums and figures are the demo workspace, not a live agency.</div>
+  </div>
+</div>
+
+<script>
+/* ── small builders ─────────────────────────────────────────────────── */
+const chip = (c, t) => `<span class="chip ${c}">${t}</span>`;
+const fld  = (l, v, cls) => `<div><span class="lab">${l}</span><span class="val${cls ? " " + cls : ""}">${v}</span></div>`;
+const tl   = (k, b, m) => `<div class="tl"><div class="tk">${k}</div><div><div class="tb">${b}</div><div class="tm">${m}</div></div></div>`;
+const sel  = (v, hint) => `<div class="inp${hint ? " hint" : ""}">${v}<span class="cv">⌄</span></div>`;
+
+/* ── the screens ────────────────────────────────────────────────────── */
+const SCREENS = {
+
+/* 1 — cold open */
+open: `<div class="titlepane">
+  <div class="kick">Agent Control Center</div>
+  <h3>The CRM that will not let a sale fall apart</h3>
+  <p>An insurance CRM built inside a working Florida agency — because nothing on the market did the one thing that was costing the agency money.</p>
+</div>`,
+
+/* 2 — the three leaks */
+leaks: `<div class="titlepane">
+  <div class="kick">Why it exists</div>
+  <h3>Three places money leaks out of an agency</h3>
+  <div class="trio">
+    <div class="leak" data-k="l1"><div class="bar"></div><div class="n">LEAK 01</div><h5>Leads that sit</h5><p>You paid for it at 9:02. Nobody called until 4:30. The other four agents on that shared lead already did.</p></div>
+    <div class="leak" data-k="l2"><div class="bar"></div><div class="n">LEAK 02</div><h5>Follow-ups nobody made</h5><p>"Call me after the first." Written on a sticky note that is no longer on the monitor.</p></div>
+    <div class="leak" data-k="l3"><div class="bar"></div><div class="n">LEAK 03</div><h5>Paperwork collected too late</h5><p>Three weeks after the sale, underwriting wants the wind mit. Nobody kept it. The policy cancels.</p></div>
+  </div>
+</div>`,
+
+/* 3 — integrations */
+integrations: `<div class="inner">
+  <div class="ph"><div><h2>Integrations</h2><p>Four lead sources connected · each with its own private endpoint</p></div>
+    <div class="sp"><span class="btn bs">Export</span><span class="btn bp">Add a source</span></div></div>
+  <div class="card sec" data-k="vendors">
+    <h3>Lead sources</h3>
+    <div class="row"><span class="dnc"></span><span class="nm">EverQuote</span><span class="sm">POST /api/leads/ev_•••••••••4a2f</span>${chip("c-sold", "Active")}<span class="w">$18.00 / lead</span><span class="rt">312 leads</span></div>
+    <div class="row"><span class="dnc"></span><span class="nm">SmartFinancial</span><span class="sm">POST /api/leads/sf_•••••••••b7c1</span>${chip("c-sold", "Active")}<span class="w">$14.50 / lead</span><span class="rt">188 leads</span></div>
+    <div class="row"><span class="dnc"></span><span class="nm">AllWebLeads</span><span class="sm">POST /api/leads/aw_•••••••••0e93</span>${chip("c-sold", "Active")}<span class="w">$21.00 / lead</span><span class="rt">96 leads</span></div>
+    <div class="row"><span class="dnc"></span><span class="nm">Website form</span><span class="sm">POST /api/leads/web_•••••••••11d8</span>${chip("c-sold", "Active")}<span class="w">—</span><span class="rt">54 leads</span></div>
+  </div>
+  <div class="card sec" style="margin-top:11px">
+    <h3>Delivery<span class="more">Last 24 hours</span></h3>
+    <div class="row"><span class="nm">EverQuote</span><span class="sm">Robert Okafor · accepted in 840&nbsp;ms</span><span class="rt">7 min ago</span></div>
+    <div class="row"><span class="nm">SmartFinancial</span><span class="sm">Tanya Brooks · accepted in 1.1&nbsp;s</span><span class="rt">2 hr ago</span></div>
+  </div>
+</div>`,
+
+/* 4,5,6 — leads list */
+leads: `<div class="inner">
+  <div class="ph"><div><h2>Leads</h2><p>18 leads · 5 new this week</p></div>
+    <div class="sp"><span class="btn bs">Import</span><span class="btn bp">New lead</span></div></div>
+  <div class="filters" data-k="filters">
+    <div class="inp hint">Search name, phone, policy number…</div>${sel("All statuses")}${sel("All sources")}${sel("Everyone")}
+  </div>
+  <div class="card" data-k="list" style="overflow:hidden">
+    <div class="sec" style="padding-top:8px;padding-bottom:8px">
+      <div class="row" data-k="r1"><span class="dnc" data-k="dot1"></span><span class="nm">Robert Okafor</span>${chip("c-new", "New")}<span class="sm">EverQuote · Home</span><span class="score" data-k="score1">92</span><span class="rt">Cape Coral · 7 min ago</span></div>
+      <div class="row"><span class="dnc"></span><span class="nm">Tanya Brooks</span>${chip("c-work", "Working")}<span class="sm">SmartFinancial · Auto</span><span class="score">81</span><span class="rt">Fort Myers · 2 hr ago</span></div>
+      <div class="row"><span class="dnc"></span><span class="nm">Luis Ferrante</span>${chip("c-new", "New")}<span class="sm">Website · Package</span><span class="score">76</span><span class="rt">Naples · 5 hr ago</span></div>
+      <div class="row" data-k="blocked"><span class="dnc no"></span><span class="nm">Ray Mullins</span>${chip("c-bad", "Do not call")}<span class="sm">AllWebLeads · Auto</span><span class="score low">—</span><span class="rt">Blocked · litigator list</span></div>
+      <div class="row"><span class="dnc"></span><span class="nm">Priya Raman</span>${chip("c-work", "Working")}<span class="sm">EverQuote · Home</span><span class="score mid">64</span><span class="rt">Bonita Springs · 1 day ago</span></div>
+      <div class="row"><span class="dnc"></span><span class="nm">Curtis Boyle</span>${chip("c-sold", "Sold")}<span class="sm">EverQuote · Package</span><span class="score">88</span><span class="rt">Cape Coral · 3 days ago</span></div>
+      <div class="row"><span class="dnc"></span><span class="nm">Alana Pierce</span>${chip("c-lost", "Lost")}<span class="sm">SmartFinancial · Auto</span><span class="score low">41</span><span class="rt">Estero · 4 days ago</span></div>
+    </div>
+  </div>
+</div>`,
+
+/* 7,8 — dashboard */
+dashboard: `<div class="inner">
+  <div class="ph"><div><h2>Good morning, Dana</h2><p>Tuesday, 10 November</p></div></div>
+  <div class="g4" data-k="tiles">
+    <div class="card tile"><div class="ic">↗</div><div class="n">18</div><div class="l">Total leads</div></div>
+    <div class="card tile"><div class="ic">+</div><div class="n">5</div><div class="l">New this week</div></div>
+    <div class="card tile"><div class="ic">☎</div><div class="n">7</div><div class="l">Working</div></div>
+    <div class="card tile"><div class="ic">✓</div><div class="n">6</div><div class="l">Sold</div></div>
+  </div>
+  <div class="g2" style="margin-top:11px">
+    <div class="card sec" data-k="renew">
+      <h3>Renewing soon<span class="more">Next 45 days →</span></h3>
+      <div class="row"><span class="nm">Dale Whitcomb</span><span class="sm">AAA · Package · AAA-FL-884120</span><span class="rt" style="color:var(--danger);font-weight:500">10 Dec · 30d</span></div>
+      <div class="row"><span class="nm">Curtis Boyle</span><span class="sm">Security First · Home</span><span class="rt">22 Dec · 42d</span></div>
+      <div class="row"><span class="nm">Marisol Delgado</span><span class="sm">Progressive · Auto</span><span class="rt">04 Jan · 55d</span></div>
+    </div>
+    <div class="card sec" data-k="fups">
+      <h3>Follow-ups today<span class="more">All →</span></h3>
+      <div class="row"><span class="nm">Robert Okafor</span><span class="rt">2:00 pm</span></div>
+      <div class="row"><span class="nm">Tanya Brooks</span><span class="rt">4:30 pm</span></div>
+      <div class="row"><span class="nm">Priya Raman</span><span class="rt">Overdue · 1d</span></div>
+    </div>
+  </div>
+  <div class="g2" style="margin-top:11px">
+    <div class="card sec"><h3>Pipeline</h3>
+      <div class="row">${chip("c-new", "New")}<span class="rt">5</span></div>
+      <div class="row">${chip("c-work", "Working")}<span class="rt">7</span></div>
+      <div class="row">${chip("c-sold", "Sold")}<span class="rt">6</span></div>
+    </div>
+    <div class="card sec"><h3>Needs an owner</h3>
+      <div class="row"><span class="nm">2 unassigned leads</span><span class="rt">Assign →</span></div>
+      <div class="row"><span class="nm">1 not dialed in 48 hr</span><span class="rt">View →</span></div>
+    </div>
+  </div>
+</div>`,
+
+/* 9–15 — one lead, scrolled */
+lead: `<div class="inner">
+  <div class="ph" data-k="head"><div><h2>Robert Okafor</h2><p>EverQuote · Home · created 7 minutes ago · assigned to Dana Reyes</p></div>
+    <div class="sp">${chip("c-new", "New")}<span class="btn bs">Email</span><span class="btn bp">Mark sold</span></div></div>
+
+  <div class="card sec" data-k="contact">
+    <h3>Contact</h3>
+    <div class="fieldrow">
+      ${fld("Phone", "(239) 555‑0142")}${fld("Email", "r.okafor@example.com")}${fld("Date of birth", "14 Mar 1979")}${fld("Marital status", "Married")}
+    </div>
+    <div class="hr" style="height:1px;background:var(--line);margin:11px 0"></div>
+    <div class="fieldrow three">
+      ${fld("Address", "1420 Palm Breeze Ln, Cape Coral FL 33914")}${fld("Insured today", "Citizens")}${fld("Their policy expires", "02 Jan 2027")}
+    </div>
+  </div>
+
+  <div class="card sec" data-k="comms" style="margin-top:11px">
+    <h3>Reach out<span class="more">Through RingCentral (desktop)</span></h3>
+    <div class="row" style="padding-top:2px">
+      <span class="dnc"></span><span class="nm">(239) 555‑0142</span>${chip("c-sold", "Safe to call")}
+      <span class="sm">scrubbed 7 min ago</span>
+      <span class="rt"><span class="btn bp" data-k="callbtn">☎ Call</span> <span class="btn bs">✉ Text</span></span>
+    </div>
+  </div>
+
+  <div class="card sec" data-k="property" style="margin-top:11px">
+    <h3>Property<span class="more">Lee County tax roll · ran automatically</span></h3>
+    <div class="fieldrow">
+      ${fld("Owner of record", "Okafor, Robert A")}${fld("Just value", "$735,000")}${fld("Year built", "2012")}${fld("Living area", "2,840 sq ft")}
+    </div>
+    <div class="hr" style="height:1px;background:var(--line);margin:11px 0"></div>
+    <div class="fieldrow">
+      <div data-k="homestead"><span class="lab">Homestead exemption</span><span class="val warn">None on file</span></div>
+      ${fld("Last sale", "Jun 2023 · $610,000")}${fld("Construction", "Masonry")}${fld("Roof cover", "Architectural shingle")}
+    </div>
+  </div>
+
+  <div class="card sec" data-k="permits" style="margin-top:11px">
+    <h3>Building permits<span class="more">Roofing flagged</span></h3>
+    <div class="row"><span class="nm">Roof replacement — full tear-off</span>${chip("c-warn", "Roofing")}<span class="sm">Permit 21‑04418</span><span class="rt">Closed Aug 2021</span></div>
+    <div class="row"><span class="nm">Pool enclosure</span><span class="sm">Permit 19‑11207</span><span class="rt">Closed May 2019</span></div>
+  </div>
+
+  <div class="card sec" data-k="vehicles" style="margin-top:11px">
+    <h3>Vehicles and drivers</h3>
+    <div class="row"><span class="nm">2019 Toyota Highlander</span><span class="sm">VIN 5TDJZRFH•••••4192</span><span class="rt">Garaged at address</span></div>
+    <div class="row"><span class="nm">2022 Honda Civic</span><span class="sm">VIN 2HGFE2F5•••••8803</span><span class="rt">Commute 14 mi</span></div>
+    <div class="row"><span class="nm">Robert Okafor</span><span class="sm">Licence F2630‑••• · FL</span><span class="rt">Primary</span></div>
+    <div class="row"><span class="nm">Alicia Okafor</span><span class="sm">Licence O4418‑••• · FL</span><span class="rt">Spouse</span></div>
+  </div>
+
+  <div class="card sec" data-k="followup" style="margin-top:11px">
+    <h3>Follow-up</h3>
+    <div class="row" style="padding-top:2px"><span class="nm">Tomorrow, 2:00 pm</span><span class="sm">He asked to be called back after the quote</span><span class="rt"><span class="btn bs">Change</span></span></div>
+  </div>
+
+  <div class="card sec" data-k="timeline" style="margin-top:11px">
+    <h3>Timeline</h3>
+    ${tl("☎", "<b>Call</b> — 4 min 12 s. Walked through the homestead filing. Wants the package quote by Thursday.", "Dana Reyes · today, 9:41 am")}
+    ${tl("✉", "<b>Text sent</b> — “Robert, it’s Dana at Sunshine State. Sending that quote over today.”", "Dana Reyes · today, 9:46 am")}
+    ${tl("⇄", "<b>Status</b> — New → Working", "Dana Reyes · today, 9:46 am")}
+    ${tl("⌂", "<b>Property lookup</b> — Lee County roll matched. No homestead exemption on file.", "System · today, 9:02 am")}
+    ${tl("●", "<b>Do-not-call</b> — number checked, clear.", "System · today, 9:02 am")}
+    ${tl("+", "<b>Created</b> — delivered by EverQuote.", "System · today, 9:02 am")}
+  </div>
+</div>`,
+
+/* 16 — follow-ups */
+followups: `<div class="inner">
+  <div class="ph"><div><h2>Follow-ups</h2><p>3 today · 1 overdue · 6 this week</p></div></div>
+  <div class="card sec" data-k="today">
+    <h3>Today</h3>
+    <div class="row"><span class="rt" style="margin-left:0;width:64px">2:00 pm</span><span class="nm">Robert Okafor</span>${chip("c-work", "Working")}<span class="sm">Package quote promised Thursday</span><span class="rt">(239) 555‑0142</span></div>
+    <div class="row"><span class="rt" style="margin-left:0;width:64px">4:30 pm</span><span class="nm">Tanya Brooks</span>${chip("c-work", "Working")}<span class="sm">Waiting on her current dec page</span><span class="rt">(239) 555‑0288</span></div>
+  </div>
+  <div class="card sec" data-k="over" style="margin-top:11px">
+    <h3>Overdue</h3>
+    <div class="row"><span class="rt" style="margin-left:0;width:64px;color:var(--danger);font-weight:500">1 day</span><span class="nm">Priya Raman</span>${chip("c-warn", "Overdue")}<span class="sm">Said to call after the 1st</span><span class="rt">(239) 555‑0317</span></div>
+  </div>
+  <div class="card sec" style="margin-top:11px">
+    <h3>Later this week</h3>
+    <div class="row"><span class="rt" style="margin-left:0;width:64px">Thu</span><span class="nm">Luis Ferrante</span><span class="sm">Wind mit inspection booked</span><span class="rt">(239) 555‑0455</span></div>
+    <div class="row"><span class="rt" style="margin-left:0;width:64px">Fri</span><span class="nm">Marisol Delgado</span><span class="sm">Renewal review</span><span class="rt">(239) 555‑0520</span></div>
+  </div>
+</div>`,
+
+/* 17 — sold, step 1 */
+sold1: `<div class="scrim"><div class="modal" data-k="modal">
+  <div class="mh"><h4>Record the sale — Robert Okafor</h4><span class="step">Step 1 of 2 · what you sold</span></div>
+  <div class="mb">
+    <div class="ask"><span class="q">Carrier</span><div class="seg"><span class="on">AAA</span><span>GeoVera</span><span>Security First</span><span>Citizens</span><span>Progressive</span></div></div>
+    <div class="ask"><span class="q">Line</span><div class="seg"><span>Auto</span><span class="on">Package</span></div></div>
+    <div class="fieldrow" style="grid-template-columns:repeat(4,1fr);gap:9px">
+      <div><span class="lab">Annual premium</span><div class="inp" style="margin-top:3px">$3,180</div></div>
+      <div><span class="lab">Policy number</span><div class="inp" style="margin-top:3px">AAA‑FL‑884133</div></div>
+      <div><span class="lab">Effective</span><div class="inp" style="margin-top:3px">01 Dec 2026</div></div>
+      <div><span class="lab">Term</span><div class="inp" style="margin-top:3px">12 months<span class="cv">⌄</span></div></div>
+    </div>
+  </div>
+  <div class="mf"><span class="note">The renewal date is worked out from the effective date and the term.</span><span class="btn bp" style="margin-left:auto">Continue</span></div>
+</div></div>`,
+
+/* 18 — sold, step 2, answers asking for paperwork */
+sold2: `<div class="scrim"><div class="modal" data-k="modal">
+  <div class="mh"><h4>Record the sale — Robert Okafor</h4><span class="step">Step 2 of 2 · what underwriting will ask for</span></div>
+  <div class="mb">
+    <div class="ask"><span class="q">Did you declare prior auto?</span><div class="seg"><span class="on">Yes</span><span>No</span></div></div>
+    <div class="ask"><span class="q">Did you give the wind mitigation discount?</span><div class="seg"><span class="on">Yes</span><span>No</span></div></div>
+    <div data-k="needs" style="display:grid;gap:7px;margin-top:2px">
+      <div class="need done"><span class="px">✓</span>VIN checks <span class="tag">2 files attached</span></div>
+      <div class="need done"><span class="px">✓</span>Proof of prior home insurance <span class="tag">1 file attached</span></div>
+      <div class="need miss"><span class="px">!</span>Prior auto declarations page <span class="tag">required — because you declared prior auto</span></div>
+      <div class="need miss"><span class="px">!</span>Wind mitigation report <span class="tag">required — because you gave the discount</span></div>
+    </div>
+  </div>
+  <div class="mf"><span class="note">Drop files here or choose from this customer's file.</span><span class="btn bp" style="margin-left:auto">Record the sale</span></div>
+</div></div>`,
+
+/* 19 — sold, blocked */
+sold3: `<div class="scrim"><div class="modal" data-k="modal">
+  <div class="mh"><h4>Record the sale — Robert Okafor</h4><span class="step">Step 2 of 2 · blocked</span></div>
+  <div class="mb">
+    <div class="blockmsg" data-k="block">⛔ Two required documents are still missing. The sale cannot be recorded until they are attached.</div>
+    <div style="display:grid;gap:7px">
+      <div class="need done"><span class="px">✓</span>VIN checks <span class="tag">2 files attached</span></div>
+      <div class="need done"><span class="px">✓</span>Proof of prior home insurance <span class="tag">1 file attached</span></div>
+      <div class="need miss"><span class="px">!</span>Prior auto declarations page <span class="tag">missing</span></div>
+      <div class="need miss"><span class="px">!</span>Wind mitigation report <span class="tag">missing</span></div>
+    </div>
+  </div>
+  <div class="mf"><span class="note">Nothing is written to the book until the file is complete.</span><span class="btn bd" data-k="disabled" style="margin-left:auto">Record the sale</span></div>
+</div></div>`,
+
+/* 20 — book of business */
+book: `<div class="inner">
+  <div class="ph"><div><h2>Book of business</h2><p>6 in force · $14,280 written premium</p></div>
+    <div class="sp"><span class="btn bp">＋ Add customer</span></div></div>
+  <div class="tabs" data-k="tabs">
+    <span class="tab cur">✓ Active <b>6</b></span><span class="tab">⟳ Renewal <b>3</b></span><span class="tab">⊘ Cancelled <b>1</b></span>
+  </div>
+  <div class="card" data-k="policies" style="overflow:hidden"><div class="sec" style="padding-top:8px;padding-bottom:8px">
+    <div class="row" data-k="p1"><span class="nm">Robert Okafor</span><span class="sm">AAA · Package · AAA‑FL‑884133</span><span class="sm">📎 4</span><span class="w">$3,180</span><span class="w">12 months</span><span class="rt">01 Dec 2027 · 386d</span></div>
+    <div class="row"><span class="nm">Dale Whitcomb</span><span class="sm">AAA · Package · AAA‑FL‑884120</span><span class="sm">📎 5</span><span class="w">$2,940</span><span class="w">12 months</span><span class="rt" style="color:var(--danger);font-weight:500">10 Dec 2026 · 30d</span></div>
+    <div class="row"><span class="nm">Curtis Boyle</span><span class="sm">Security First · Home · SF‑2210984</span><span class="sm">📎 3</span><span class="w">$2,615</span><span class="w">12 months</span><span class="rt">22 Dec 2026 · 42d</span></div>
+    <div class="row"><span class="nm">Marisol Delgado</span><span class="sm">Progressive · Auto · 9442‑7781</span><span class="sm">📎 2</span><span class="w">$1,845</span><span class="w">6 months</span><span class="rt">04 Jan 2027 · 55d</span></div>
+    <div class="row"><span class="nm">Hank Prosser</span><span class="sm">Citizens · Home · CIT‑FL‑55210</span><span class="sm">📎 4</span><span class="w">$2,380</span><span class="w">12 months</span><span class="rt">18 Mar 2027 · 128d</span></div>
+    <div class="row"><span class="nm">Yvette Caro</span><span class="sm">GeoVera · Home · GV‑881244</span><span class="sm">📎 3</span><span class="w">$1,320</span><span class="w">12 months</span><span class="rt">02 Jun 2027 · 204d</span></div>
+  </div></div>
+</div>`,
+
+/* 21 — renewals */
+renewals: `<div class="inner">
+  <div class="ph"><div><h2>Renewals</h2><p>Expiring within 45 days · nobody put these here</p></div></div>
+  <div class="card sec" data-k="rlist">
+    <h3>Requote these</h3>
+    <div class="row"><span class="rt" style="margin-left:0;width:70px;color:var(--danger);font-weight:600">30 days</span><span class="nm">Dale Whitcomb</span><span class="sm">AAA · Package · $2,940</span>${chip("c-warn", "Not started")}<span class="rt">Expires 10 Dec 2026</span></div>
+    <div class="row"><span class="rt" style="margin-left:0;width:70px">42 days</span><span class="nm">Curtis Boyle</span><span class="sm">Security First · Home · $2,615</span>${chip("c-work", "Quoting")}<span class="rt">Expires 22 Dec 2026</span></div>
+    <div class="row"><span class="rt" style="margin-left:0;width:70px">55 days</span><span class="nm">Marisol Delgado</span><span class="sm">Progressive · Auto · $1,845</span>${chip("c-sold", "Renewed")}<span class="rt">Expires 04 Jan 2027</span></div>
+  </div>
+  <div class="card sec" style="margin-top:11px">
+    <h3>Why this list exists</h3>
+    <div class="row"><span class="nm">$7,400</span><span class="sm">of written premium inside the next 45 days</span><span class="rt">Keep it or lose it</span></div>
+  </div>
+</div>`,
+
+/* 22 — customers */
+customers: `<div class="inner">
+  <div class="ph"><div><h2>Customers</h2><p>6 customers · searchable by everyone in the agency</p></div>
+    <div class="sp"><span class="btn bp" data-k="addcust">＋ Add customer</span></div></div>
+  <div class="filters" style="grid-template-columns:2fr 1fr 1fr"><div class="inp hint">Search name, phone, address or policy number…</div>${sel("All carriers")}${sel("All agents")}</div>
+  <div class="card" data-k="clist" style="overflow:hidden"><div class="sec" style="padding-top:8px;padding-bottom:8px">
+    <div class="row"><span class="nm">Dale Whitcomb</span><span class="sm">Cape Coral · (239) 555‑0611</span>${chip("c-sold", "In force")}<span class="sm">AAA Package</span><span class="rt">5 documents on file</span></div>
+    <div class="row"><span class="nm">Curtis Boyle</span><span class="sm">Cape Coral · (239) 555‑0734</span>${chip("c-sold", "In force")}<span class="sm">Security First Home</span><span class="rt">3 documents on file</span></div>
+    <div class="row"><span class="nm">Marisol Delgado</span><span class="sm">Fort Myers · (239) 555‑0520</span>${chip("c-sold", "In force")}<span class="sm">Progressive Auto</span><span class="rt">2 documents on file</span></div>
+    <div class="row" data-k="docs"><span class="nm">Hank Prosser</span><span class="sm">Naples · (239) 555‑0846</span>${chip("c-sold", "In force")}<span class="sm">Citizens Home</span><span class="rt">4 documents on file</span></div>
+  </div></div>
+  <div class="card sec" data-k="docpanel" style="margin-top:11px">
+    <h3>Hank Prosser — documents<span class="more">Every link expires</span></h3>
+    <div class="row"><span class="nm">wind-mitigation-2026.pdf</span>${chip("c-sold", "Wind mit")}<span class="sm">1.8 MB</span><span class="rt">Uploaded 04 Mar 2026</span></div>
+    <div class="row"><span class="nm">prior-home-dec.pdf</span>${chip("c-sold", "Prior home")}<span class="sm">640 KB</span><span class="rt">Uploaded 04 Mar 2026</span></div>
+    <div class="row"><span class="nm">ownership-deed.pdf</span>${chip("c-sold", "Ownership")}<span class="sm">1.1 MB</span><span class="rt">Uploaded 04 Mar 2026</span></div>
+  </div>
+</div>`,
+
+/* 23 — reports */
+reports: `<div class="inner">
+  <div class="ph"><div><h2>Reports</h2><p>Overview · last 30 days</p></div>
+    <div class="sp"><span class="btn bs">Not dialed</span><span class="btn bs">Export CSV</span></div></div>
+  <div class="g4">
+    <div class="card tile"><div class="n">46</div><div class="l">Leads in</div></div>
+    <div class="card tile"><div class="n">11</div><div class="l">Sold</div></div>
+    <div class="card tile"><div class="n">23.9%</div><div class="l">Close rate</div></div>
+    <div class="card tile"><div class="n">$2,412</div><div class="l">Average premium</div></div>
+  </div>
+  <div class="card sec" data-k="sources" style="margin-top:11px">
+    <h3>Where the money comes from<span class="more">Cost per sale by source</span></h3>
+    <div class="row"><span class="nm">EverQuote</span><span class="w">21 leads</span><span class="w">$18.00 ea</span><span class="w">6 sold</span><span class="rt" style="color:var(--pos);font-weight:600">$63 per sale</span></div>
+    <div class="row"><span class="nm">Website form</span><span class="w">7 leads</span><span class="w">—</span><span class="w">3 sold</span><span class="rt" style="color:var(--pos);font-weight:600">$0 per sale</span></div>
+    <div class="row"><span class="nm">SmartFinancial</span><span class="w">12 leads</span><span class="w">$14.50 ea</span><span class="w">2 sold</span><span class="rt">$87 per sale</span></div>
+    <div class="row" data-k="badsource"><span class="nm">AllWebLeads</span><span class="w">6 leads</span><span class="w">$21.00 ea</span><span class="w">0 sold</span><span class="rt" style="color:var(--danger);font-weight:600">$126 spent, nothing sold</span></div>
+  </div>
+  <div class="card sec" data-k="notdialed" style="margin-top:11px">
+    <h3>Not dialed<span class="more">The report most agencies cannot produce</span></h3>
+    <div class="row"><span class="nm">Luis Ferrante</span><span class="sm">Website · Package · score 76</span><span class="rt" style="color:var(--warning);font-weight:500">In 5 hours, no call attempt</span></div>
+    <div class="row"><span class="nm">Opal Grady</span><span class="sm">EverQuote · Home · score 69</span><span class="rt" style="color:var(--danger);font-weight:500">In 2 days, no call attempt</span></div>
+  </div>
+</div>`,
+
+/* 24 — team */
+team: `<div class="inner">
+  <div class="ph"><div><h2>Team</h2><p>3 active · 1 invitation outstanding</p></div>
+    <div class="sp"><span class="btn bp" data-k="invite">＋ Invite someone</span></div></div>
+  <div class="card sec" data-k="members">
+    <h3>Who can sign in</h3>
+    <div class="row"><span class="av" style="width:21px;height:21px">DR</span><span class="nm">Dana Reyes</span>${chip("c-new", "Admin")}<span class="sm">dana@sunshinestate.example</span><span class="w">Goal 12</span><span class="rt">Last in 8 min ago</span></div>
+    <div class="row"><span class="av" style="width:21px;height:21px">MG</span><span class="nm">Marcus Gill</span>${chip("c-work", "Agent")}<span class="sm">marcus@sunshinestate.example</span><span class="w">Goal 8</span><span class="rt">Last in yesterday</span></div>
+    <div class="row"><span class="av" style="width:21px;height:21px">JL</span><span class="nm">Joy Lindqvist</span>${chip("c-work", "Agent")}<span class="sm">joy@sunshinestate.example</span><span class="w">Goal 8</span><span class="rt">Last in 3 hr ago</span></div>
+    <div class="row" data-k="pending"><span class="av" style="width:21px;height:21px;background:#d7dde4;color:#7b8794">?</span><span class="nm">Tom Reddick</span>${chip("c-warn", "Invited")}<span class="sm">tom@sunshinestate.example</span><span class="w">Agent</span><span class="rt">Sets their own password · expires in 6 days</span></div>
+  </div>
+  <div class="card sec" style="margin-top:11px">
+    <h3>What each role sees</h3>
+    <div class="row"><span class="nm">Admin</span><span class="sm">The whole agency — every lead, the full book, reports, team, integrations, billing</span></div>
+    <div class="row"><span class="nm">Agent</span><span class="sm">Their own leads and the policies they wrote. Customers are shared across the agency.</span></div>
+  </div>
+</div>`,
+
+/* 25 — tools */
+tools: `<div class="inner">
+  <div class="ph"><div><h2>Tools</h2><p>Moving work in, out and sideways</p></div></div>
+  <div class="g3" data-k="toolcards">
+    <div class="card sec"><h3>⬆ Import</h3>
+      <div class="row"><span class="sm">Drop a CSV from your old system. Map the columns once, see what will be created, then commit.</span></div>
+      <div class="row"><span class="nm">book-transfer.csv</span><span class="rt">214 rows ready</span></div></div>
+    <div class="card sec"><h3>⇄ Transfer</h3>
+      <div class="row"><span class="sm">Move leads between agents when somebody is out, on holiday or leaves. The timeline records who moved what.</span></div>
+      <div class="row"><span class="nm">Marcus Gill → Joy Lindqvist</span><span class="rt">9 leads</span></div></div>
+    <div class="card sec"><h3>⧉ Duplicates</h3>
+      <div class="row"><span class="sm">The same person bought twice from two vendors. Catch it before two agents call them on the same day.</span></div>
+      <div class="row"><span class="nm">Priya Raman ×2</span><span class="rt">Merge →</span></div></div>
+  </div>
+  <div class="card sec" data-k="settings" style="margin-top:11px">
+    <h3>Settings<span class="more">Set once, then forget</span></h3>
+    <div class="fieldrow">
+      ${fld("Phone system", "RingCentral (desktop app)")}${fld("New leads go to", "Round robin, active agents")}${fld("Text on arrival", "On · 1 message, then stop")}${fld("Nightly backup", "On · emailed to the owner")}
+    </div>
+  </div>
+</div>`,
+
+/* 26 — tenancy */
+walls: `<div class="titlepane">
+  <div class="kick">Your data</div>
+  <h3>No other agency can see a single row of yours</h3>
+  <div class="trio">
+    <div class="leak mine" data-k="w1"><div class="bar"></div><h5>Your agency</h5><p>18 leads · 6 customers · 6 policies · 4 lead sources. Every row stamped with your agency.</p></div>
+    <div class="leak" data-k="w2"><div class="bar" style="background:#4a5a6e"></div><h5>Another agency</h5><p>Cannot query yours. Not by URL, not by search, not by export. The scope is applied before the query runs.</p></div>
+    <div class="leak" data-k="w3"><div class="bar" style="background:#4a5a6e"></div><h5>A third agency</h5><p>Same wall. Their do-not-call list never suppresses your calling, and yours never suppresses theirs.</p></div>
+  </div>
+  <p style="margin-top:4px">Download the whole thing as spreadsheets whenever you want. It is your book.</p>
+</div>`,
+
+/* 27 — price */
+price: `<div class="titlepane">
+  <div class="kick">Agent Control Center</div>
+  <div class="priceline"><span class="big">$300</span><span class="per">per month · twelve-month agreement</span></div>
+  <div class="incl">
+    <span>Setup included</span><span>Lead sources connected for you</span><span>Your whole team</span><span>Your data exports any time</span>
+  </div>
+  <p style="margin-top:8px">Every feature in this tour. Nothing held back for a higher tier.</p>
+</div>`
+};
+
+/* ── the scenes ─────────────────────────────────────────────────────── */
+const SCENES = [
+{ ch:"Cold open", s:"open",
+  tx:"Agent Control Center. An insurance CRM built inside a working Florida agency, because nothing on the market did the one thing that was costing the agency money." },
+
+{ ch:"Why it exists", s:"leaks", spot:"l3",
+  tx:"There are three places money leaks out of an insurance agency. Leads that sit while somebody gets to them. Follow-ups nobody made. And sales that fall apart weeks later because a document was never collected. Everything you are about to see exists to close one of those three." },
+
+{ ch:"Leads arrive", s:"integrations", nav:"tools", spot:"vendors",
+  tx:"Start with where leads come from. Every source you buy from — EverQuote, SmartFinancial, AllWebLeads, your own website form — gets its own private address. You hand the vendor that one address and you are done. Your connection only ever delivers into your agency." },
+
+{ ch:"Leads arrive", s:"leads", nav:"leads", spot:"r1", badge:["r1","Delivered, parsed and assigned in <b>840&nbsp;ms</b>"],
+  tx:"A lead posts and it is in the system in about a second — assigned to somebody, with the source stamped on it. Nobody copies anything out of an email, and nobody is retyping a phone number at nine at night." },
+
+{ ch:"Leads arrive", s:"leads", nav:"leads", spot:"blocked", badge:["blocked","Checked <b>before</b> anyone can dial"],
+  tx:"Then compliance. Every number is scrubbed against do-not-call before anyone touches it. Green means safe. Red means do not call — and your team sees that dot before they pick up the phone, not after." },
+
+{ ch:"Leads arrive", s:"leads", nav:"leads", spot:"filters",
+  tx:"The leads are scored, so the list is ordered by what is actually worth calling rather than by whatever arrived last. Filter by status, by source, or by whose desk it is sitting on." },
+
+{ ch:"The morning view", s:"dashboard", nav:"dashboard", spot:"tiles",
+  tx:"This is the morning view. New leads, what is being worked, what sold. No dashboards to build and no widgets to drag. It is simply the state of the agency when you sit down." },
+
+{ ch:"The morning view", s:"dashboard", nav:"dashboard", spot:"renew",
+  tx:"And underneath it, the two lists that decide whether this month is a good one: what renews soon, and who you told you would call back today." },
+
+{ ch:"Inside a lead", s:"lead", nav:"leads", spot:"contact",
+  tx:"Open a lead and the whole file is on one screen. Contact, household, the line of business they asked about, who they are insured with today, and when that policy expires." },
+
+{ ch:"Inside a lead", s:"lead", nav:"leads", spot:"property", scroll:"property",
+  tx:"This panel filled itself in. The address went against the county property roll the moment the lead arrived. He owns the home, the county values it at seven hundred and thirty-five thousand, and it was built in 2012." },
+
+{ ch:"Inside a lead", s:"lead", nav:"leads", spot:"homestead", scroll:"property", badge:["homestead","Bought in 2023 and <b>never filed</b>"],
+  tx:"And look at this line. No homestead exemption on file. He bought in 2023 and never filed it. That is a conversation worth having — and the competitor working the same shared lead is not having it." },
+
+{ ch:"Inside a lead", s:"lead", nav:"leads", spot:"permits", scroll:"permits",
+  tx:"Building permits come across as well, with roofing flagged. A roof replaced in 2021 means a wind mitigation discount you can quote with confidence, instead of asking him to go and find paperwork." },
+
+{ ch:"Inside a lead", s:"lead", nav:"leads", spot:"vehicles", scroll:"vehicles",
+  tx:"Vehicles with their VINs, and the drivers in the household. Everything the quote needs, already on the record before the first call." },
+
+{ ch:"Inside a lead", s:"lead", nav:"leads", spot:"comms", scroll:"comms",
+  tx:"Click the number and it dials through the phone system you already pay for — RingCentral, Dialpad, Zoom Phone, 8x8, Vonage, GoTo Connect, or whatever this computer already uses. You pick it once in settings. Click the message icon and it texts." },
+
+{ ch:"Inside a lead", s:"lead", nav:"leads", spot:"timeline", scroll:"timeline",
+  tx:"Every call, text, email, note and status change is written to the file in order, with who did it and when. When a customer says nobody ever called them, you know." },
+
+{ ch:"Follow-ups", s:"followups", nav:"followups", spot:"over",
+  tx:"Set a follow-up and it comes back to you on the day, on the dashboard. That is the second leak closed — nothing depends on somebody remembering." },
+
+{ ch:"The sold flow", s:"sold1", nav:"leads", spot:"modal",
+  tx:"Now the part that makes this different from every other CRM. Marking a lead sold does not just change a dropdown. First it asks what you actually sold: carrier, line, premium, term and policy number." },
+
+{ ch:"The sold flow", s:"sold2", nav:"leads", spot:"needs",
+  tx:"Then each answer asks for its own paperwork. Package policy, so it wants the VIN checks. You declared prior auto, so it wants the prior auto declarations page. You gave the wind mitigation discount, so it wants the wind mit report. And proof of prior home insurance, every single time." },
+
+{ ch:"The sold flow", s:"sold3", nav:"leads", spot:"block", badge:["disabled","Disabled until the file is complete"],
+  tx:"And here is the whole point. It will not record the sale until those documents are attached. Not a reminder. Not a warning you can click past. It will not do it. So underwriting does not come back three weeks later asking for a document nobody kept, and you do not lose a policy you already earned." },
+
+{ ch:"Book of business", s:"book", nav:"book", spot:"p1",
+  tx:"Once it is recorded, the policy is in your book: carrier, policy number, written premium, term, the documents attached to it, and the renewal date worked out from the effective date. You never type a renewal date." },
+
+{ ch:"Book of business", s:"renewals", nav:"renewals", spot:"rlist",
+  tx:"Forty-five days before a policy expires it appears here on its own. Requote it, or it lapses. That is the difference between a book that compounds every year and one that quietly leaks." },
+
+{ ch:"Book of business", s:"customers", nav:"customers", spot:"docpanel",
+  tx:"Customers are searchable by everyone in your agency, with every document on file behind a link that expires. And if you are bringing a book with you, existing customers can be added straight in." },
+
+{ ch:"Running the agency", s:"reports", nav:"tools", spot:"sources", badge:["badsource","Stop renewing this one"],
+  tx:"Reports show the pipeline, who is producing, and where the leads are coming from. Put in what you pay per lead and you get cost per sale by source, so you stop renewing the vendor that is not paying for itself." },
+
+{ ch:"Running the agency", s:"reports", nav:"tools", spot:"notdialed", scroll:"notdialed",
+  tx:"And there is the report most agencies cannot produce at all: the leads nobody has dialed yet. One screen, every morning, and the first leak closes." },
+
+{ ch:"Running the agency", s:"team", nav:"tools", spot:"pending",
+  tx:"You bring your own staff on by email. They set their own password — you never see it, never handle it and never reset one by hand. Admins see the whole agency. An agent sees their own desk." },
+
+{ ch:"Running the agency", s:"tools", nav:"tools", spot:"toolcards",
+  tx:"And the plumbing: import a spreadsheet from your old system, move leads between agents when somebody is out, and catch duplicates before two people call the same person on the same day." },
+
+{ ch:"Your data", s:"walls", spot:"w1",
+  tx:"One more thing, because every agency asks. Your data is yours. Every record carries your agency on it, and every query is scoped to your agency before it runs. No other agency on this platform can see a single row of yours, ever." },
+
+{ ch:"Pricing", s:"price",
+  tx:"Three hundred dollars a month, on a twelve-month agreement. Setup, your lead sources connected and your whole team onboarded are included. Agent Control Center." }
+];
+
+/* ── build the panes ────────────────────────────────────────────────── */
+const panesEl = document.getElementById("panes");
+const navEl = document.getElementById("nav");
+const viewport = document.getElementById("viewport");
+const cursor = document.getElementById("cursor");
+const badgeEl = document.getElementById("badge");
+const paneFor = {};
+const FULL = { open:1, leaks:1, walls:1, price:1 };
+
+for (const key of Object.keys(SCREENS)) {
+  const d = document.createElement("div");
+  d.className = "pane";
+  d.innerHTML = SCREENS[key];
+  panesEl.appendChild(d);
+  paneFor[key] = d;
+}
+
+/* ── timing ─────────────────────────────────────────────────────────── */
+const words = s => s.trim().split(/\s+/).length;
+const mmss = t => {
+  t = Math.max(0, Math.round(t));
+  return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
+};
+
+const starts = [];
+let TOTAL = 0;
+/* Reading aloud is slower than a speech engine, so teleprompter mode stretches
+   every scene rather than cutting you off mid-sentence. */
+function computeTiming(f) {
+  starts.length = 0;
+  let acc = 0;
+  SCENES.forEach(s => {
+    s.dur = Math.min(17, Math.max(4.2, words(s.tx) / 2.6 + 1.5)) * f;
+    starts.push(acc);
+    acc += s.dur;
+  });
+  TOTAL = acc;
+}
+computeTiming(1);
+
+const ticksEl = document.getElementById("ticks");
+function drawTicks() {
+  ticksEl.innerHTML = "";
+  starts.forEach((st, i) => {
+    if (!i) return;
+    const k = document.createElement("i");
+    k.style.left = (st / TOTAL * 100) + "%";
+    ticksEl.appendChild(k);
+  });
+}
+drawTicks();
+
+const chapters = [];
+SCENES.forEach((s, i) => {
+  if (!chapters.length || chapters[chapters.length - 1].ch !== s.ch) chapters.push({ ch: s.ch, i, t: starts[i] });
+});
+const clist = document.getElementById("clist");
+chapters.forEach(c => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.innerHTML = `<span>${mmss(c.t)}</span>${c.ch}`;
+  b.addEventListener("click", () => { seek(c.t + 0.01); if (!playing) play(); });
+  clist.appendChild(b);
+  c.el = b;
+});
+
+const runtimeEl = document.getElementById("runtime");
+function stampTiming() {
+  runtimeEl.textContent = SCENES.length + " scenes · " + mmss(TOTAL);
+  chapters.forEach(c => { c.t = starts[c.i]; c.el.querySelector("span").textContent = mmss(c.t); });
+  drawTicks();
+}
+stampTiming();
+
+/* ── scaling ────────────────────────────────────────────────────────── */
+const stage = document.getElementById("stage");
+let scale = 1;
+const fit = () => {
+  const w = stage.parentElement.clientWidth;
+  scale = w / 1120;
+  stage.style.transform = "scale(" + scale + ")";
+};
+fit();
+addEventListener("resize", fit);
+if (window.ResizeObserver) new ResizeObserver(fit).observe(stage.parentElement);
+
+/* ── speech ─────────────────────────────────────────────────────────── */
+let voiceOn = false, voice = null, readMode = false;
+const synth = window.speechSynthesis;
+const vpick = document.getElementById("vpick");
+
+/* Rank what the machine actually has. The modern "natural" voices sound human;
+   the old desktop ones do not, and on most Windows machines those three are all
+   there is — which is why this page also has a teleprompter. */
+const rank = n =>
+  /natural|neural|online/i.test(n) ? 100 :
+  /aria|jenny|guy|emma|brian|ava|andrew|michelle|roger/i.test(n) ? 90 :
+  /google/i.test(n) ? 80 :
+  /samantha|alex|daniel|karen|moira/i.test(n) ? 70 :
+  /mark/i.test(n) ? 50 :        /* warmest of the old three */
+  /david/i.test(n) ? 42 :
+  /zira/i.test(n) ? 36 : 25;
+
+let voices = [];
+function loadVoices() {
+  if (!synth) return;
+  voices = synth.getVoices().filter(v => /^en\b|^en[-_]/i.test(v.lang));
+  if (!voices.length) return;
+  voices.sort((a, b) => rank(b.name) - rank(a.name));
+  let saved = null;
+  try { saved = localStorage.getItem("acc-voice"); } catch (e) {}
+  voice = voices.find(v => v.name === saved) || voices[0];
+  vpick.innerHTML = "";
+  voices.forEach(v => {
+    const o = document.createElement("option");
+    o.value = v.name;
+    o.textContent = v.name.replace(/\s*-\s*English.*$/i, "").replace(/^Microsoft\s+/i, "");
+    if (v === voice) o.selected = true;
+    vpick.appendChild(o);
+  });
+}
+if (synth) { loadVoices(); synth.addEventListener("voiceschanged", loadVoices); }
+vpick.addEventListener("change", () => {
+  voice = voices.find(v => v.name === vpick.value) || voice;
+  try { localStorage.setItem("acc-voice", vpick.value); } catch (e) {}
+  if (voiceOn) say(SCENES[cur].tx);
+});
+
+/* Speech engines mangle symbols and read digits flatly. Hand them words. */
+function speakable(s) {
+  return s
+    .replace(/8x8/g, "eight by eight")
+    .replace(/\$(\d+)/g, "$1 dollars")
+    .replace(/\bDNC\b/g, "do not call")
+    .replace(/\bVIN\b/g, "vin")
+    .replace(/\bCSV\b/g, "C S V")
+    .replace(/—/g, ",")
+    .replace(/\s+([,.])/g, "$1")
+    .replace(/,\s*,/g, ",")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/* A long utterance comes out as one flat paragraph. People speak in breath
+   groups: a clause, a short pause, the next clause, a longer pause at the full
+   stop. So the line is cut into those groups and spoken one at a time, with the
+   pause timed between them rather than left to the engine. */
+const RATE = 0.91, PITCH = 0.96;
+function sentences(s) { return s.match(/[^.!?]+[.!?]*/g) || [s]; }
+
+function phrases(text) {
+  const out = [];
+  sentences(text).forEach(raw => {
+    const s = raw.trim();
+    if (!s) return;
+    if (s.length <= 95) { out.push({ t: s, end: true }); return; }
+    const bits = s.split(/,\s+/);
+    let buf = "";
+    bits.forEach((b, i) => {
+      const piece = i < bits.length - 1 ? b + "," : b;
+      if (buf && (buf + " " + piece).length > 95) { out.push({ t: buf, end: false }); buf = piece; }
+      else buf = buf ? buf + " " + piece : piece;
+    });
+    if (buf) out.push({ t: buf, end: true });
+  });
+  if (out.length) out[out.length - 1].end = true;
+  return out;
+}
+
+let gen = 0, vol = 1;
+function stopSpeech() {
+  gen++;
+  if (synth) { try { synth.cancel(); } catch (e) {} }
+}
+
+const say = text => {
+  stopSpeech();
+  if (!voiceOn || !synth || readMode) return;
+  const mine = gen;
+  const list = phrases(speakable(text));
+  let i = 0;
+  const step = () => {
+    if (mine !== gen || i >= list.length) return;
+    const ph = list[i], first = i === 0, last = i === list.length - 1;
+    let u;
+    try { u = new SpeechSynthesisUtterance(ph.t); } catch (e) { return; }
+    if (voice) u.voice = voice;
+    /* lift slightly into a line, settle out of it — the shape of a spoken sentence */
+    u.rate = RATE + (first ? 0.02 : 0) - (last ? 0.035 : 0);
+    u.pitch = PITCH + (first ? 0.035 : 0) - (last ? 0.045 : 0);
+    u.volume = vol;
+    let moved = false;
+    const go = () => {
+      if (moved || mine !== gen) return;
+      moved = true;
+      i++;
+      setTimeout(step, ph.end ? 400 : 210);
+    };
+    u.onend = go;
+    u.onerror = go;
+    /* Chrome drops onend often enough that the queue needs a floor under it. */
+    setTimeout(go, (ph.t.length / (13 * u.rate)) * 1000 + 1700);
+    try { synth.speak(u); } catch (e) { go(); }
+  };
+  step();
+};
+
+/* ── the engine ─────────────────────────────────────────────────────── */
+const fillEl = document.getElementById("fill");
+const timeEl = document.getElementById("time");
+const chEl = document.getElementById("chLabel");
+const txEl = document.getElementById("narration");
+const toggleBtn = document.getElementById("toggle");
+const trackEl = document.getElementById("track");
+const poster = document.getElementById("poster");
+
+let t = 0, cur = -1, playing = false, last = 0, tapTimer = null, badgeTimer = null;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function indexAt(time) {
+  for (let i = SCENES.length - 1; i >= 0; i--) if (time >= starts[i]) return i;
+  return 0;
+}
+
+function clearMarks() {
+  panesEl.querySelectorAll(".spot").forEach(e => e.classList.remove("spot"));
+  cursor.classList.remove("show", "tap");
+  badgeEl.classList.remove("show");
+  clearTimeout(tapTimer); clearTimeout(badgeTimer);
+}
+
+function place(el) {
+  const vr = viewport.getBoundingClientRect(), r = el.getBoundingClientRect();
+  return {
+    x: (r.left - vr.left) / scale, y: (r.top - vr.top) / scale,
+    w: r.width / scale, h: r.height / scale
+  };
+}
+
+function enter(i) {
+  const sc = SCENES[i];
+  cur = i;
+  clearMarks();
+
+  for (const k in paneFor) paneFor[k].classList.toggle("on", k === sc.s);
+  navEl.hidden = !!FULL[sc.s];
+  panesEl.classList.toggle("full", !!FULL[sc.s]);
+  navEl.querySelectorAll(".nitem").forEach(n => n.classList.toggle("cur", n.dataset.n === sc.nav));
+
+  const pane = paneFor[sc.s];
+  const scrollEl = sc.scroll ? pane.querySelector('[data-k="' + sc.scroll + '"]') : null;
+  if (scrollEl) {
+    const top = Math.max(0, scrollEl.offsetTop - 26);
+    try { pane.scrollTo({ top, behavior: reduce ? "auto" : "smooth" }); } catch (e) { pane.scrollTop = top; }
+  } else {
+    pane.scrollTop = 0;
+  }
+
+  chEl.textContent = sc.ch;
+  txEl.textContent = sc.tx;
+  chapters.forEach(c => c.el.classList.toggle("cur", c.ch === sc.ch));
+  say(sc.tx);
+
+  const mark = () => {
+    const target = sc.spot ? pane.querySelector('[data-k="' + sc.spot + '"]') : null;
+    if (target) {
+      target.classList.add("spot");
+      const p = place(target);
+      const cx = Math.min(p.x + p.w - 34, p.x + 48);
+      cursor.style.transform = "translate(" + cx + "px," + (p.y + Math.min(p.h / 2, 26)) + "px)";
+      cursor.classList.add("show");
+      if (!reduce) {
+        tapTimer = setTimeout(() => {
+          cursor.classList.add("tap");
+          setTimeout(() => cursor.classList.remove("tap"), 600);
+        }, 620);
+      }
+    }
+    if (sc.badge) {
+      const anchor = pane.querySelector('[data-k="' + sc.badge[0] + '"]');
+      if (anchor) {
+        const p = place(anchor);
+        badgeEl.innerHTML = sc.badge[1];
+        // Hang it under the thing it points at, so it never sits on top of a
+        // neighbouring value; flip above when there is no room below.
+        const below = p.y + p.h + 10;
+        badgeEl.style.left = Math.max(14, Math.min(p.x, 1120 - 276)) + "px";
+        badgeEl.style.top = (below + 58 > 580 ? Math.max(8, p.y - 58) : below) + "px";
+        badgeTimer = setTimeout(() => badgeEl.classList.add("show"), 520);
+      }
+    }
+  };
+  if (sc.scroll && !reduce) setTimeout(mark, 420); else mark();
+}
+
+const lineFill = document.getElementById("lineFill");
+function paint() {
+  fillEl.style.width = (t / TOTAL * 100) + "%";
+  timeEl.textContent = mmss(t) + " / " + mmss(TOTAL);
+  trackEl.setAttribute("aria-valuenow", Math.round(t / TOTAL * 100));
+  if (readMode) {
+    const sc = SCENES[cur];
+    lineFill.style.width = Math.max(0, Math.min(1, (t - starts[cur]) / sc.dur)) * 100 + "%";
+  }
+}
+
+function frame(now) {
+  if (playing) {
+    const dt = Math.min(0.25, (now - last) / 1000);
+    last = now;
+    t += dt;
+    if (t >= TOTAL) { t = TOTAL; stop(true); }
+    const i = indexAt(t);
+    if (i !== cur) enter(i);
+    paint();
+  } else {
+    last = now;
+  }
+  requestAnimationFrame(frame);
+}
+
+function play() {
+  if (t >= TOTAL) { t = 0; enter(0); }
+  playing = true;
+  toggleBtn.textContent = "Pause";
+  poster.classList.add("gone");
+  if (voiceOn && synth && !synth.speaking) say(SCENES[cur].tx);
+}
+function stop(ended) {
+  playing = false;
+  toggleBtn.textContent = ended ? "Replay" : "Play";
+  stopSpeech();
+}
+function seek(time) {
+  t = Math.max(0, Math.min(TOTAL - 0.05, time));
+  enter(indexAt(t));
+  paint();
+}
+
+/* A 3-2-1 before recording, so you are not reading the first line while still
+   reaching for the record button. */
+const countEl = document.getElementById("count");
+let counting = null;
+function startFromTop() {
+  seek(0);
+  if (!readMode) { play(); return; }
+  clearInterval(counting);
+  let n = 3;
+  countEl.hidden = false;
+  countEl.textContent = n;
+  counting = setInterval(() => {
+    n--;
+    if (n <= 0) { clearInterval(counting); countEl.hidden = true; play(); }
+    else countEl.textContent = n;
+  }, 850);
+}
+
+toggleBtn.addEventListener("click", () => playing ? stop() : (t === 0 ? startFromTop() : play()));
+document.getElementById("playBtn").addEventListener("click", () => {
+  if (readMode) { startFromTop(); return; }
+  if (synth) voiceSet(true);
+  play();
+});
+document.getElementById("restart").addEventListener("click", startFromTop);
+
+const readBtn = document.getElementById("readmode");
+readBtn.addEventListener("click", () => {
+  readMode = !readMode;
+  document.body.classList.toggle("read", readMode);
+  readBtn.setAttribute("aria-pressed", String(readMode));
+  readBtn.textContent = readMode ? "🎙 Reading mode on" : "🎙 Read it yourself";
+  if (readMode && voiceOn) voiceSet(false);
+  stop();
+  computeTiming(readMode ? 1.3 : 1);
+  stampTiming();
+  seek(0);
+  poster.classList.remove("gone");
+});
+document.getElementById("prev").addEventListener("click", () => seek(starts[Math.max(0, cur - 1)] + 0.01));
+document.getElementById("next").addEventListener("click", () => seek(cur + 1 < SCENES.length ? starts[cur + 1] + 0.01 : TOTAL - 0.1));
+
+const voiceBtn = document.getElementById("voice");
+function voiceSet(on) {
+  voiceOn = on;
+  voiceBtn.setAttribute("aria-pressed", String(on));
+  voiceBtn.textContent = on ? "🔊 Narration on" : "🔇 Narration off";
+  if (!on) stopSpeech();
+  else if (playing) say(SCENES[cur].tx);
+}
+
+/* Volume. speechSynthesis fixes volume per utterance, so a change lands on the
+   next breath group — a second or two — rather than mid-word. */
+const volRange = document.getElementById("volRange");
+const volNum = document.getElementById("volNum");
+const volIcon = document.getElementById("volIcon");
+let lastVol = 100;
+function volSet(v, remember) {
+  v = Math.max(0, Math.min(100, Math.round(v)));
+  vol = v / 100;
+  volRange.value = v;
+  volNum.textContent = v;
+  volIcon.textContent = v === 0 ? "🔇" : v < 34 ? "🔈" : v < 70 ? "🔉" : "🔊";
+  volIcon.title = v === 0 ? "Unmute" : "Mute";
+  if (v > 0) lastVol = v;
+  if (remember) { try { localStorage.setItem("acc-vol", String(v)); } catch (e) {} }
+}
+let storedVol = null;
+try { storedVol = localStorage.getItem("acc-vol"); } catch (e) {}
+volSet(storedVol === null ? 100 : Number(storedVol), false);
+volRange.addEventListener("input", () => volSet(Number(volRange.value), true));
+const toggleMute = () => volSet(vol > 0 ? 0 : lastVol, true);
+volIcon.addEventListener("click", toggleMute);
+volIcon.addEventListener("keydown", e => {
+  if (e.key === "Enter" || e.key === " ") { toggleMute(); e.preventDefault(); }
+});
+if (!synth) { voiceBtn.disabled = true; voiceBtn.textContent = "Narration unavailable"; voiceBtn.style.opacity = ".5"; }
+voiceBtn.addEventListener("click", () => voiceSet(!voiceOn));
+
+const seekFromEvent = e => {
+  const r = trackEl.getBoundingClientRect();
+  const x = ((e.touches ? e.touches[0].clientX : e.clientX) - r.left) / r.width;
+  seek(starts[indexAt(Math.max(0, Math.min(1, x)) * TOTAL)] + 0.01);
+};
+trackEl.addEventListener("click", seekFromEvent);
+trackEl.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight") { seek(cur + 1 < SCENES.length ? starts[cur + 1] + 0.01 : TOTAL - 0.1); e.preventDefault(); }
+  if (e.key === "ArrowLeft") { seek(starts[Math.max(0, cur - 1)] + 0.01); e.preventDefault(); }
+});
+addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("button, input, select, [role=slider], [role=button], summary")) return;
+  if (e.key === " ") { playing ? stop() : play(); e.preventDefault(); }
+});
+
+enter(0);
+paint();
+requestAnimationFrame(frame);
+</script>

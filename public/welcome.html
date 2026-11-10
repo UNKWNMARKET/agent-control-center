@@ -1,0 +1,502 @@
+<title>Agent Control Center</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   AGENT CONTROL CENTER — the offer
+   Layout: a dark hero carrying the product's hardest claim, then light bands
+   of evidence. The motif is the declarations page an agent reads all day:
+   mono field labels in small caps over a hairline-ruled value, numbers set
+   in tabular figures. Numbering is used only where the content really is a
+   sequence — the path a lead takes.
+   ───────────────────────────────────────────────────────────────────────── */
+:root{
+  --ink:#0c1724;        /* deep navy, the hero ground */
+  --ink-2:#17283c;
+  --paper:#f4f6f9;      /* cool paper, faint blue bias */
+  --paper-2:#ffffff;
+  --text:#121c28;
+  --text-2:#41536a;
+  --text-3:#6c7f96;
+  --rule:#dde3eb;
+  --rule-2:#c8d2de;
+  --blue:#0a5bd3;       /* the one accent */
+  --blue-soft:#e7eefb;
+  --green:#0d7a45;      /* only ever "in force" */
+  --green-soft:#e4f3ea;
+  --amber:#96590a;      /* only ever "underwriting wants this" */
+  --amber-soft:#fbefdc;
+  --red:#b5202f;
+  --red-soft:#fbe8ea;
+  --onink:#e9f0f9;
+  --onink-2:#9db2cb;
+  --onink-rule:#22364e;
+  --shadow:0 1px 2px rgba(12,23,36,.05),0 12px 30px -14px rgba(12,23,36,.22);
+  --shadow-2:0 2px 6px rgba(12,23,36,.07),0 28px 60px -24px rgba(12,23,36,.4);
+  --d:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --b:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --m:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0b1420; --paper-2:#101d2c; --text:#e8eff8; --text-2:#a9bbd1; --text-3:#7d93ad;
+    --rule:#1e3148; --rule-2:#2a4160; --blue:#5ba4ff; --blue-soft:#13283f;
+    --green:#4cc489; --green-soft:#10281d; --amber:#e0a84a; --amber-soft:#2a2113;
+    --red:#ff7b86; --red-soft:#2d151a;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -14px rgba(0,0,0,.7);
+    --shadow-2:0 2px 6px rgba(0,0,0,.5),0 28px 60px -24px rgba(0,0,0,.8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0b1420; --paper-2:#101d2c; --text:#e8eff8; --text-2:#a9bbd1; --text-3:#7d93ad;
+  --rule:#1e3148; --rule-2:#2a4160; --blue:#5ba4ff; --blue-soft:#13283f;
+  --green:#4cc489; --green-soft:#10281d; --amber:#e0a84a; --amber-soft:#2a2113;
+  --red:#ff7b86; --red-soft:#2d151a;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -14px rgba(0,0,0,.7);
+  --shadow-2:0 2px 6px rgba(0,0,0,.5),0 28px 60px -24px rgba(0,0,0,.8);
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--text);font-family:var(--b);font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--ink)}
+h1,h2,h3,h4{font-family:var(--d);font-weight:600;letter-spacing:-.022em;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:inherit}
+.band{width:100%}
+.in{max-width:1120px;margin:0 auto;padding-block:clamp(44px,6.5vw,86px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.lab{font-family:var(--m);font-size:.66rem;letter-spacing:.17em;text-transform:uppercase;color:var(--text-3);display:block}
+.on-ink .lab{color:#6f8dae}
+.eyebrow{font-family:var(--m);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--blue)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── header ─────────────────────────────────────────────────────────── */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(12,23,36,.93);
+  backdrop-filter:saturate(170%) blur(14px);border-bottom:1px solid var(--onink-rule)}
+.hbar{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:14px;min-height:60px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.logo{display:flex;align-items:center;gap:9px;font-weight:600;color:#fff;font-size:1rem;white-space:nowrap;text-decoration:none}
+.logo i{width:22px;height:22px;border-radius:6px;flex:none;background:linear-gradient(145deg,#4f9bff,#0a5bd3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 2px 8px rgba(10,91,211,.5)}
+nav.links{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav.links a{color:var(--onink-2);text-decoration:none;font-size:.86rem;font-weight:500;padding:7px 11px;border-radius:8px}
+nav.links a:hover{color:#fff;background:rgba(255,255,255,.07)}
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;font-weight:600;
+  font-size:.9rem;padding:.62rem 1.15rem;text-decoration:none;white-space:nowrap;border:1px solid transparent;
+  transition:transform .14s ease,box-shadow .2s ease,background .2s ease}
+.cta:active{transform:scale(.97)}
+.cta-p{background:linear-gradient(180deg,#2a7cf0,#0a5bd3);color:#fff;box-shadow:0 2px 10px -2px rgba(10,91,211,.55),inset 0 1px 0 rgba(255,255,255,.26)}
+.cta-p:hover{box-shadow:0 8px 22px -6px rgba(10,91,211,.65),inset 0 1px 0 rgba(255,255,255,.3)}
+.cta-g{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.2)}
+.cta-g:hover{background:rgba(255,255,255,.14)}
+.cta-o{background:transparent;color:var(--blue);border-color:var(--rule-2)}
+.cta-o:hover{background:var(--blue-soft)}
+@media (max-width:860px){nav.links{display:none}}
+
+/* ── hero ───────────────────────────────────────────────────────────── */
+.hero{background:var(--ink);color:var(--onink);
+  background-image:radial-gradient(760px 420px at 78% -6%,rgba(42,124,240,.28),transparent 68%)}
+.hero .in{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(28px,4vw,54px);align-items:center}
+.hero h1{font-size:clamp(2.1rem,5.1vw,3.5rem);line-height:1.06;color:#fff;margin:.5rem 0 0}
+.hero .sub{margin-top:1.05rem;font-size:clamp(1rem,1.7vw,1.14rem);color:var(--onink-2);max-width:48ch;line-height:1.6}
+.hero .btns{display:flex;gap:11px;flex-wrap:wrap;margin-top:1.6rem}
+.hero .under{margin-top:1.1rem;font-size:.84rem;color:#6f8dae}
+@media (max-width:860px){.hero .in{grid-template-columns:1fr}}
+
+/* the gate card, the hero's argument made visible */
+.gate{background:#fff;border-radius:16px;box-shadow:var(--shadow-2);overflow:hidden;border:1px solid rgba(255,255,255,.1);
+  color:#121c28;max-width:100%}
+.gate .gh{padding:11px 15px;border-bottom:1px solid #e6eaef;display:flex;align-items:center;gap:9px;background:#fbfcfd}
+.gate .gh b{font-size:.84rem;font-weight:600}
+.gate .gh span{margin-left:auto;font-family:var(--m);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:#8a99ab}
+.gate .gb{padding:13px 15px;display:grid;gap:8px}
+.gi{display:flex;align-items:center;gap:9px;border-radius:10px;padding:8px 11px;font-size:.81rem;border:1px solid}
+.gi .px{width:16px;height:16px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:.6rem;font-weight:700;color:#fff}
+.gi .tag{margin-left:auto;font-size:.66rem;font-weight:600;text-align:right}
+.gi.ok{background:#e4f3ea;border-color:#b9e0c9;color:#0d7a45}
+.gi.ok .px{background:#0d7a45}
+.gi.no{background:#fbefdc;border-color:#ebcb9a;color:#96590a}
+.gi.no .px{background:#96590a}
+.gate .gf{padding:10px 15px;border-top:1px solid #e6eaef;background:#fbfcfd;display:flex;align-items:center;gap:10px}
+.gate .gf em{font-style:normal;font-size:.73rem;color:#6c7f96}
+.gate .gf b{margin-left:auto;background:#eaecef;color:#a9b2bd;border-radius:999px;padding:6px 14px;font-size:.78rem;font-weight:600}
+.gate .stop{display:flex;gap:8px;align-items:center;background:#fbe8ea;color:#b5202f;border-radius:10px;padding:9px 12px;
+  font-size:.8rem;font-weight:600;border:1px solid #f0c4c9}
+
+/* ── facts strip ────────────────────────────────────────────────────── */
+.strip{background:var(--ink-2);color:var(--onink);border-top:1px solid var(--onink-rule)}
+.strip .in{padding-block:22px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.fact .k{font-family:var(--d);font-size:1.5rem;font-weight:700;color:#fff;line-height:1.1;font-variant-numeric:tabular-nums}
+.fact .v{font-size:.8rem;color:#8ea6c2;margin-top:3px;line-height:1.45}
+@media (max-width:760px){.strip .in{grid-template-columns:repeat(2,1fr)}}
+
+/* ── generic section furniture ──────────────────────────────────────── */
+.head{max-width:62ch;margin-bottom:clamp(24px,3.2vw,40px)}
+.head h2{font-size:clamp(1.6rem,3.4vw,2.35rem);line-height:1.14;margin-top:.45rem}
+.head p{margin-top:.85rem;color:var(--text-2);font-size:1.03rem}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cards.two{grid-template-columns:repeat(2,1fr)}
+@media (max-width:860px){.cards,.cards.two{grid-template-columns:1fr}}
+.card{background:var(--paper-2);border:1px solid var(--rule);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+.card h3{font-size:1.1rem;margin-bottom:.4rem}
+.card p{color:var(--text-2);font-size:.93rem}
+.leakcard{border-top:3px solid var(--red)}
+.leakcard .lab{color:var(--red)}
+
+/* ── the gate section ───────────────────────────────────────────────── */
+.gateband{background:var(--paper-2);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(26px,4vw,52px);align-items:start}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.rules{border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:var(--paper)}
+.rules .rh{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;padding:10px 15px;background:var(--paper-2);
+  border-bottom:1px solid var(--rule)}
+.rules .rr{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;padding:11px 15px;border-bottom:1px solid var(--rule);
+  font-size:.88rem;align-items:center}
+.rules .rr:last-child{border-bottom:0}
+.rules .rr b{font-weight:600;color:var(--text)}
+.rules .rr span{color:var(--text-2)}
+.quote{margin-top:22px;border-left:3px solid var(--blue);padding:4px 0 4px 18px;font-family:var(--d);font-size:1.16rem;
+  line-height:1.5;color:var(--text)}
+
+/* ── the path (a real sequence, so it is numbered) ──────────────────── */
+.steps{display:grid;gap:0}
+.step{display:grid;grid-template-columns:62px 1fr auto;gap:18px;align-items:baseline;padding:18px 0;border-top:1px solid var(--rule)}
+.step:last-child{border-bottom:1px solid var(--rule)}
+.step .n{font-family:var(--m);font-size:.74rem;color:var(--blue);letter-spacing:.12em;padding-top:4px}
+.step h4{font-size:1.06rem}
+.step p{color:var(--text-2);font-size:.93rem;margin-top:.25rem;max-width:62ch}
+.auto{font-family:var(--m);font-size:.64rem;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;
+  background:var(--green-soft);color:var(--green);border-radius:999px;padding:5px 10px;align-self:center}
+.auto.you{background:var(--blue-soft);color:var(--blue)}
+@media (max-width:720px){.step{grid-template-columns:48px 1fr;gap:12px}.auto{grid-column:2;justify-self:start;margin-top:8px}}
+
+/* ── feature grid ───────────────────────────────────────────────────── */
+.fgroup{margin-top:28px}
+.fgroup > .lab{margin-bottom:12px}
+.flist{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+.f{background:var(--paper-2);padding:16px 17px}
+.f b{display:block;font-size:.95rem;font-weight:600;margin-bottom:.2rem}
+.f span{font-size:.86rem;color:var(--text-2);line-height:1.5;display:block}
+@media (max-width:860px){.flist{grid-template-columns:1fr}}
+
+/* ── pricing ────────────────────────────────────────────────────────── */
+.priceband{background:var(--ink);color:var(--onink);
+  background-image:radial-gradient(680px 380px at 18% 0%,rgba(42,124,240,.26),transparent 66%)}
+.priceband h2{color:#fff}
+.pricegrid{display:grid;grid-template-columns:1fr 1.15fr;gap:clamp(26px,4vw,48px);align-items:start}
+@media (max-width:900px){.pricegrid{grid-template-columns:1fr}}
+.pricebox{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:26px;
+  box-shadow:0 30px 70px -30px rgba(0,0,0,.7)}
+.pricebox .amt{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pricebox .amt b{font-family:var(--d);font-size:clamp(3rem,7vw,4.2rem);font-weight:700;color:#fff;line-height:1;letter-spacing:-.03em}
+.pricebox .amt em{font-style:normal;color:var(--onink-2);font-size:1rem}
+.terms{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.13)}
+.terms .lab{color:#6f8dae}
+.terms .v{color:#fff;font-weight:600;font-size:.95rem;margin-top:3px}
+.inc{display:grid;gap:9px;margin-top:4px}
+.inc li{list-style:none;display:flex;gap:10px;align-items:flex-start;font-size:.95rem;color:var(--onink)}
+.inc li::before{content:"✓";color:#4cc489;font-weight:700;flex:none;margin-top:1px}
+.inc.out li::before{content:"–";color:#6f8dae;font-weight:700}
+.inc.out li{color:var(--onink-2);font-size:.9rem}
+ul{padding:0;margin:0}
+
+/* ── honesty + faq ──────────────────────────────────────────────────── */
+.note{background:var(--amber-soft);border:1px solid var(--amber);border-radius:14px;
+  padding:18px 20px;color:var(--text)}
+.note b{color:var(--amber)}
+.faq{display:grid;gap:0;margin-top:8px}
+.faq details{border-top:1px solid var(--rule)}
+.faq details:last-of-type{border-bottom:1px solid var(--rule)}
+.faq summary{cursor:pointer;padding:16px 36px 16px 0;font-weight:600;font-size:1rem;list-style:none;position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:6px;top:14px;font-size:1.3rem;color:var(--blue);font-weight:400;line-height:1}
+.faq details[open] summary::after{content:"–"}
+.faq p{padding:0 0 18px;color:var(--text-2);max-width:72ch;font-size:.95rem}
+
+/* ── close ──────────────────────────────────────────────────────────── */
+.close{background:var(--ink-2);color:var(--onink);border-top:1px solid var(--onink-rule)}
+.close .in{display:grid;gap:22px;justify-items:start}
+.close h2{color:#fff;font-size:clamp(1.7rem,3.6vw,2.5rem)}
+.contact{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--onink-rule);
+  border:1px solid var(--onink-rule);border-radius:14px;overflow:hidden;width:100%}
+.contact div{background:#13233a;padding:15px 17px}
+.contact .v{color:#fff;font-weight:600;margin-top:4px;font-size:.98rem;word-break:break-word}
+.contact .v.todo{color:#e0a84a;font-family:var(--m);font-size:.85rem;font-weight:500}
+footer{background:var(--ink);color:#5e789a;border-top:1px solid var(--onink-rule);font-size:.82rem}
+footer .in{padding-block:24px;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+footer a{color:#8ea6c2}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header>
+  <div class="hbar">
+    <a class="logo" href="#top"><i></i>Agent Control Center</a>
+    <nav class="links">
+      <a href="#gate">The sold flow</a>
+      <a href="#path">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">Questions</a>
+    </nav>
+    <a class="cta cta-p" href="#contact">Book a walkthrough</a>
+  </div>
+</header>
+
+<div class="band hero on-ink" id="top">
+  <div class="in">
+    <div>
+      <span class="eyebrow">For independent insurance agencies</span>
+      <h1>The CRM that will not let a sale fall apart</h1>
+      <p class="sub">Every other CRM lets an agent mark a lead sold and move on. This one stops them until the paperwork underwriting is going to ask for is actually attached. Built inside a working Florida agency, by the agent who kept losing policies to missing documents.</p>
+      <div class="btns">
+        <a class="cta cta-p" data-tour href="https://claude.ai/artifact/39vLRiPbAhTAeamsxBQy2w">▶ Watch the 7-minute tour</a>
+        <a class="cta cta-g" href="#pricing">$300/month — see what's included</a>
+      </div>
+      <p class="under">Multi-agency platform. Your data is walled off from every other agency on it.</p>
+    </div>
+
+    <div class="gate" role="img" aria-label="The sold dialog refusing to record a sale because two required documents are missing">
+      <div class="gh"><b>Record the sale — R. Okafor</b><span>AAA · Package</span></div>
+      <div class="gb">
+        <div class="stop">⛔ Two required documents are still missing</div>
+        <div class="gi ok"><span class="px">✓</span>VIN checks<span class="tag">2 files</span></div>
+        <div class="gi ok"><span class="px">✓</span>Proof of prior home insurance<span class="tag">1 file</span></div>
+        <div class="gi no"><span class="px">!</span>Prior auto dec page<span class="tag">you declared prior auto</span></div>
+        <div class="gi no"><span class="px">!</span>Wind mitigation report<span class="tag">you gave the discount</span></div>
+      </div>
+      <div class="gf"><em>Nothing is written to the book until the file is complete.</em><b>Record the sale</b></div>
+    </div>
+  </div>
+</div>
+
+<div class="band strip on-ink">
+  <div class="in">
+    <div class="fact"><div class="k">45 days</div><div class="v">before a policy expires, it puts itself on the renewal list</div></div>
+    <div class="fact"><div class="k">7 systems</div><div class="v">RingCentral, Dialpad, Zoom Phone, 8x8, Vonage, GoTo Connect or your own</div></div>
+    <div class="fact"><div class="k">Every lead</div><div class="v">scrubbed against do-not-call before anyone can dial it</div></div>
+    <div class="fact"><div class="k">~1 second</div><div class="v">from the vendor posting a lead to it sitting on an agent's screen</div></div>
+  </div>
+</div>
+
+<div class="band">
+  <div class="in">
+    <div class="head">
+      <span class="eyebrow">Why it exists</span>
+      <h2>Three places money leaks out of an agency</h2>
+      <p>This was not built as a product first. It was built to stop three specific things that were costing one agency real commission, every month.</p>
+    </div>
+    <div class="cards">
+      <div class="card leakcard"><span class="lab">Leak 01</span><h3>Leads that sit</h3><p>You paid for it at 9:02 in the morning. Nobody called until 4:30. The other four agents on that same shared lead already did, and one of them wrote it.</p></div>
+      <div class="card leakcard"><span class="lab">Leak 02</span><h3>Follow-ups nobody made</h3><p>"Call me after the first." Written on a sticky note that is no longer on the monitor, by an agent who has had sixty other conversations since.</p></div>
+      <div class="card leakcard"><span class="lab">Leak 03</span><h3>Paperwork collected too late</h3><p>Three weeks after the sale, underwriting wants the wind mit. Nobody kept it, the customer has stopped answering, and the policy cancels. You already paid for that lead and earned that commission.</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="band gateband" id="gate">
+  <div class="in">
+    <div class="split">
+      <div>
+        <span class="eyebrow">The difference</span>
+        <h2 style="font-size:clamp(1.6rem,3.4vw,2.35rem);line-height:1.14;margin-top:.45rem">Marking a lead sold is not a dropdown</h2>
+        <p style="margin-top:.9rem;color:var(--text-2)">When an agent records a sale, the system asks what was actually sold — carrier, line, premium, term, policy number. Then every answer pulls in the paperwork that answer creates. Miss one and the sale does not get recorded. Not a reminder. Not a warning you can click past. The button does not work.</p>
+        <p style="margin-top:.9rem;color:var(--text-2)">That is the one feature no CRM on the market has, and it is the one that pays for this software by itself. One cancelled policy a year costs more than a year of it.</p>
+        <div class="quote">"Underwriting never comes back three weeks later asking for a document nobody kept."</div>
+      </div>
+      <div>
+        <span class="lab" style="margin-bottom:10px">What triggers what</span>
+        <div class="rules">
+          <div class="rh"><span class="lab">If the agent says</span><span class="lab">The file must contain</span></div>
+          <div class="rr"><b>Package policy</b><span>VIN checks for every listed vehicle</span></div>
+          <div class="rr"><b>Prior auto declared</b><span>The prior auto declarations page</span></div>
+          <div class="rr"><b>Wind mitigation discount given</b><span>The wind mitigation report</span></div>
+          <div class="rr"><b>Any home policy</b><span>Proof of prior home insurance, every time</span></div>
+          <div class="rr"><b>Homeowner discount given</b><span>Proof of home ownership</span></div>
+        </div>
+        <p style="margin-top:14px;color:var(--text-3);font-size:.88rem">The rules sit in one place, so the dialog the agent sees and the check on the server can never drift apart. Documents are stored against the customer and reached only through links that expire.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="band" id="path">
+  <div class="in">
+    <div class="head">
+      <span class="eyebrow">How it works</span>
+      <h2>What happens to a lead, start to finish</h2>
+      <p>Seven steps from the vendor posting it to the renewal coming due a year later. Four of them nobody has to do.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><span class="n">STEP 01</span><div><h4>It arrives</h4><p>Your lead vendor posts to the private address that belongs to your agency. EverQuote, SmartFinancial, AllWebLeads, your own website form — each gets its own. No inbox, no copy and paste, no retyping a phone number at nine at night.</p></div><span class="auto">Automatic</span></div>
+      <div class="step"><span class="n">STEP 02</span><div><h4>It checks itself</h4><p>The address goes against the county property roll, the vehicles against their VINs, and the phone number against do-not-call — before anybody can dial it. The lead is scored so the list is ordered by what is worth calling, not by what came in last.</p></div><span class="auto">Automatic</span></div>
+      <div class="step"><span class="n">STEP 03</span><div><h4>It lands on a desk</h4><p>Assigned by round robin or by hand, with an optional first text going out on arrival. It shows up on the dashboard under "new this week" and on somebody's list of work.</p></div><span class="auto">Automatic</span></div>
+      <div class="step"><span class="n">STEP 04</span><div><h4>Your agent works it</h4><p>One screen: contact, household, property, vehicles, drivers, who they are insured with now and when that runs out. Click to call through your own phone system, click to text, and set a follow-up that comes back on the day.</p></div><span class="auto you">Your agent</span></div>
+      <div class="step"><span class="n">STEP 05</span><div><h4>They sell it — and the gate runs</h4><p>Carrier, line, premium, term, policy number. Then every document that answer requires, attached before the sale can be recorded.</p></div><span class="auto you">Your agent</span></div>
+      <div class="step"><span class="n">STEP 06</span><div><h4>The policy enters your book</h4><p>Written premium, term, documents and the renewal date worked out from the effective date. Nobody types a renewal date, so nobody mistypes one.</p></div><span class="auto">Automatic</span></div>
+      <div class="step"><span class="n">STEP 07</span><div><h4>It comes back before it lapses</h4><p>Forty-five days out, it puts itself on the renewal list with the premium you wrote it at. Requote it and the book compounds. Ignore it and you find out in January.</p></div><span class="auto">Automatic</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="band gateband" id="features">
+  <div class="in">
+    <div class="head">
+      <span class="eyebrow">Everything in it</span>
+      <h2>What you get for $300 a month</h2>
+      <p>Every feature below is in the product today. There is no higher tier holding something back.</p>
+    </div>
+
+    <div class="fgroup">
+      <span class="lab">Leads and compliance</span>
+      <div class="flist">
+        <div class="f"><b>Lead sources</b><span>A private endpoint per vendor. One lead can only ever land in the agency that owns the address.</span></div>
+        <div class="f"><b>Do-not-call scrubbing</b><span>Checked on arrival and shown as a dot on the list, plus your own internal suppression list.</span></div>
+        <div class="f"><b>Lead scoring</b><span>Each lead scored so the best one is at the top of the pile instead of the newest.</span></div>
+        <div class="f"><b>Property lookup</b><span>Owner, just value, year built, construction, last sale and homestead status, straight off the county roll.</span></div>
+        <div class="f"><b>Building permits</b><span>Permit history with roofing flagged — the wind mitigation conversation, before you call.</span></div>
+        <div class="f"><b>Vehicles and drivers</b><span>Listed vehicles with VINs and the drivers on the household, parsed from the lead.</span></div>
+        <div class="f"><b>Click to call and text</b><span>Through RingCentral, Dialpad, Zoom Phone, 8x8, Vonage, GoTo Connect, or whatever the computer already uses.</span></div>
+        <div class="f"><b>Follow-ups</b><span>Set a date and time; it returns on the dashboard that day, with overdue called out.</span></div>
+        <div class="f"><b>Full timeline</b><span>Every call, text, email, note, assignment and status change, in order, with who did it.</span></div>
+      </div>
+    </div>
+
+    <div class="fgroup">
+      <span class="lab">The sale and the book</span>
+      <div class="flist">
+        <div class="f"><b>The document gate</b><span>The sale cannot be recorded until underwriting's paperwork is attached. The whole reason this exists.</span></div>
+        <div class="f"><b>Policies</b><span>Carrier, policy number, written premium, 6 or 12 month term, effective and expiry dates.</span></div>
+        <div class="f"><b>Book of business</b><span>Active, renewal and cancelled, with written premium totalled and cancellation reasons kept.</span></div>
+        <div class="f"><b>Renewals</b><span>Anything expiring inside 45 days, surfaced on its own, with the days remaining.</span></div>
+        <div class="f"><b>Customers</b><span>Searchable by everyone in the agency by name, phone, address or policy number.</span></div>
+        <div class="f"><b>Documents</b><span>Dec pages, VIN checks, wind mits and ID cards on file, served only through links that expire.</span></div>
+        <div class="f"><b>Bring your book</b><span>Add people already insured with you straight in, without inventing a fake lead first.</span></div>
+        <div class="f"><b>Cancellations</b><span>Taken out of force with the reason and date, so the history survives.</span></div>
+        <div class="f"><b>Renewal maths</b><span>Expiry derived from effective date plus term and stored, so it can be queried and nobody mistypes it.</span></div>
+      </div>
+    </div>
+
+    <div class="fgroup">
+      <span class="lab">Running the agency</span>
+      <div class="flist">
+        <div class="f"><b>Your own staff</b><span>Invite by email; they set their own password. You never see it, handle it, or reset one by hand.</span></div>
+        <div class="f"><b>Roles</b><span>Admins see the whole agency. Agents see their own desk. Customers stay shared across the agency.</span></div>
+        <div class="f"><b>Reports</b><span>Pipeline, production by agent, new leads over time, and cost per sale by lead source.</span></div>
+        <div class="f"><b>The "not dialed" report</b><span>Leads nobody has called yet, with how long they have been sitting. Most agencies cannot produce this.</span></div>
+        <div class="f"><b>Monthly goals</b><span>A sales target per agent, tracked against what they have actually written.</span></div>
+        <div class="f"><b>Import</b><span>Bring a CSV from your old system, map the columns once, preview, then commit.</span></div>
+        <div class="f"><b>Transfer</b><span>Move leads between agents when somebody is out or leaves, with the move recorded.</span></div>
+        <div class="f"><b>Duplicates</b><span>Catch the same person bought twice from two vendors before two agents call them the same day.</span></div>
+        <div class="f"><b>Backups and export</b><span>A nightly backup, and the whole book out as spreadsheets whenever you want it.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="band priceband on-ink" id="pricing">
+  <div class="in">
+    <div class="head" style="max-width:56ch">
+      <span class="eyebrow">Pricing</span>
+      <h2>One price. Every feature. Your whole team.</h2>
+      <p style="color:var(--onink-2)">No per-seat charge, no setup fee, no tier where the thing you actually need sits behind an upgrade.</p>
+    </div>
+    <div class="pricegrid">
+      <div class="pricebox">
+        <div class="amt"><b>$300</b><em>per month</em></div>
+        <div class="terms">
+          <div><span class="lab">Agreement</span><div class="v">12 months</div></div>
+          <div><span class="lab">Users</span><div class="v">Your whole agency</div></div>
+          <div><span class="lab">Setup fee</span><div class="v">None</div></div>
+          <div><span class="lab">Billed</span><div class="v">Monthly</div></div>
+        </div>
+        <a class="cta cta-p" href="#contact" style="margin-top:22px;width:100%">Book a walkthrough</a>
+      </div>
+      <div>
+        <span class="lab" style="color:#6f8dae">Included</span>
+        <ul class="inc" style="margin-top:10px">
+          <li>Every feature on this page, with nothing held back for a higher tier</li>
+          <li>Your workspace set up and your agency's first admin created</li>
+          <li>Your lead sources connected and tested with a live lead</li>
+          <li>Your phone system wired to click-to-call</li>
+          <li>Your existing book imported from a spreadsheet</li>
+          <li>Your staff invited and shown around</li>
+          <li>Support directly from the person who built it</li>
+          <li>Your data exported to spreadsheets any time you ask</li>
+        </ul>
+        <span class="lab" style="color:#6f8dae;margin-top:22px">Not included — you keep these in your own name</span>
+        <ul class="inc out" style="margin-top:10px">
+          <li>What you pay your lead vendors</li>
+          <li>Your phone or SMS provider</li>
+          <li>Carrier appointments and licensing</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="band">
+  <div class="in">
+    <div class="head"><span class="eyebrow">Before you sign</span><h2>Things worth knowing up front</h2></div>
+    <div class="note">
+      <p><b>The property and permit lookup is Florida.</b> Owner of record, just value, year built, homestead status and permit history come from Florida county data. Everything else in the system — leads, do-not-call, the sold flow, the book, renewals, reports, your team — works anywhere. If you write outside Florida, you get the whole product minus that one panel, and it is built so other states can be added.</p>
+      <p style="margin-top:12px"><b>Automatic texting is optional.</b> If you want the system sending a first text when a lead lands, that runs through a messaging account in your own agency's name, set up with you. Click-to-text through the phone you already use needs nothing extra.</p>
+      <p style="margin-top:12px"><b>Billing is handled directly.</b> Monthly, on a twelve-month agreement. An unpaid month suspends the logins, never the data.</p>
+    </div>
+  </div>
+</div>
+
+<div class="band gateband" id="faq">
+  <div class="in">
+    <div class="head"><span class="eyebrow">Questions</span><h2>What agencies ask first</h2></div>
+    <div class="faq">
+      <details open><summary>Can another agency on the platform see my book?</summary><p>No. Every record carries your agency on it, and the scope is applied before the query runs — not filtered out afterwards. That covers leads, customers, policies, documents, your lead source endpoints and your do-not-call list. Your suppression list never affects anyone else's calling, and theirs never affects yours.</p></details>
+      <details><summary>What happens to my data if I leave?</summary><p>It is yours. Ask and you get the whole thing out as spreadsheets — leads, customers, policies, activity history and the document index. There is no export fee and no waiting period.</p></details>
+      <details><summary>How long does setup take?</summary><p>A working day for most agencies. Your workspace, your admin account, your lead sources connected and tested with a real lead, your phone system wired up, your book imported and your staff invited. You are not handed a login and left with it.</p></details>
+      <details><summary>Do my agents need training?</summary><p>Very little. The top row of the app is the day's work in the order it happens — dashboard, leads, follow-ups, renewals, customers, book. Everything else is filed under Tools. The one thing worth sitting with an agent on is the sold flow, because it is the one part that behaves differently from what they are used to.</p></details>
+      <details><summary>Can I use my existing phone system?</summary><p>Yes. Pick it once in settings: RingCentral on web, desktop or mobile, Dialpad, Zoom Phone, 8x8, Vonage, GoTo Connect, or whatever this computer already uses for calls and texts. Clicking a number then dials through it.</p></details>
+      <details><summary>What if my agent just lies to get past the document gate?</summary><p>They can answer "no" to a question, and that answer is recorded against the policy with their name on it — so the file shows why a document was never asked for. The gate removes the honest mistake, which is the one that actually costs you policies. The dishonest one leaves a trail.</p></details>
+      <details><summary>Why a twelve-month agreement?</summary><p>Because setup is included and done properly, and because a CRM only pays for itself once a book is in it and renewals start coming back round. Twelve months is one full renewal cycle.</p></details>
+      <details><summary>Who actually built this?</summary><p>A working insurance agent, inside a working agency, to solve problems that were costing that agency money. It is in daily use. You are not the pilot customer for someone's idea of what agencies need.</p></details>
+    </div>
+  </div>
+</div>
+
+<div class="band close on-ink" id="contact">
+  <div class="in">
+    <div>
+      <span class="eyebrow">Next step</span>
+      <h2 style="margin-top:.5rem">Fifteen minutes, and you will know</h2>
+      <p style="color:var(--onink-2);max-width:56ch;margin-top:.8rem">Watch the tour first if you like. Then a short call on your own leads: where they come from, what you are losing, and whether this fixes it. If it does not, that is a fine answer.</p>
+    </div>
+    <div class="contact">
+      <div><span class="lab">Call</span><div class="v todo">[ your phone number ]</div></div>
+      <div><span class="lab">Email</span><div class="v todo">[ your business email ]</div></div>
+      <div><span class="lab">Watch first</span><div class="v"><a data-tour href="https://claude.ai/artifact/39vLRiPbAhTAeamsxBQy2w" style="color:#7fb6ff">The 7-minute tour →</a></div></div>
+    </div>
+    <a class="cta cta-p" data-tour href="https://claude.ai/artifact/39vLRiPbAhTAeamsxBQy2w">▶ Watch the tour</a>
+  </div>
+</div>
+
+<footer>
+  <div class="in">
+    <span>Agent Control Center</span>
+    <span>$300 per month · twelve-month agreement</span>
+    <span style="margin-left:auto"><a href="#top">Back to top</a></span>
+  </div>
+</footer>
+
+<script>
+  /* The same page is served two ways: as a shared Claude link, where the tour
+     is its own artifact, and from the app itself, where the tour is at /tour.
+     Point the links at whichever one this copy is being read from. */
+  (function () {
+    var h = location.hostname;
+    if (h && !/(^|\.)claude\.ai$/.test(h) && !/claudeusercontent\.com$/.test(h)) {
+      var links = document.querySelectorAll("[data-tour]");
+      for (var i = 0; i < links.length; i++) links[i].setAttribute("href", "/tour");
+    }
+  })();
+</script>

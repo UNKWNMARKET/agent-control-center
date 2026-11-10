@@ -11,6 +11,10 @@ const PUBLIC_PREFIXES = [
   "/api/webhooks",
   "/api/cron",
   "/api/sms",
+  // The sales pages. A prospect has no account yet, so these cannot be gated.
+  "/tour",
+  "/tour.html",
+  "/welcome.html",
 ];
 
 async function isValidSession(token: string | undefined): Promise<boolean> {
@@ -31,11 +35,23 @@ export async function proxy(req: NextRequest) {
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
 
+  // The product tour, under a tidy URL rather than a file name.
+  if (pathname === "/tour") {
+    return NextResponse.rewrite(new URL("/tour.html", req.url));
+  }
+
   const authed = await isValidSession(req.cookies.get(SESSION_COOKIE)?.value);
 
   // Signed-in users shouldn't see the login page.
   if (authed && pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // The front door. Staff signing in go on to the app (page.tsx sends them to
+  // the dashboard); everyone else is a visitor, and gets the sales page at the
+  // bare domain instead of a login form for an account they do not have.
+  if (!authed && pathname === "/") {
+    return NextResponse.rewrite(new URL("/welcome.html", req.url));
   }
 
   // Everything that isn't public requires a session.
