@@ -39,7 +39,7 @@ export default async function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <PageHeader
-        title="Agency settings"
+        title="Settings"
         subtitle="Configure how leads flow through your team."
       />
 

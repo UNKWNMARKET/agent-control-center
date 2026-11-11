@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus, Copy, Archive, ArrowLeft } from "lucide-react";
+import { Plus, Copy } from "lucide-react";
 import type { LeadStatus, Prisma } from "@prisma/client";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/auth";
+import { unscopedDb } from "@/lib/db";
 import { LEAD_STATUSES } from "@/lib/leads";
 import { getMailClient, getPhoneApp } from "@/lib/settings";
 import { readProperty } from "@/lib/property";
@@ -96,7 +97,8 @@ export default async function LeadsPage({
           select: { id: true, name: true },
         })
       : Promise.resolve([]),
-    db.$queryRaw<{ tag: string }[]>`SELECT DISTINCT unnest(tags) AS tag FROM "Lead" ORDER BY tag`,
+    // Raw SQL bypasses the scoped client, so the agency filter is written out.
+    unscopedDb.$queryRaw<{ tag: string }[]>`SELECT DISTINCT unnest(tags) AS tag FROM "Lead" WHERE "agencyId" = ${user.agencyId} ORDER BY tag`,
     getMailClient(),
     getPhoneApp(),
     db.lead.count({ where: { ...(isAdmin ? {} : { assignedToId: user.id }), status: "LOST" } }),
@@ -134,26 +136,19 @@ export default async function LeadsPage({
         subtitle={
           showingLost
             ? `${total.toLocaleString()} closed out — kept out of the main list`
-            : `${total.toLocaleString()} ${total === 1 ? "lead" : "leads"} working`
+            : sp.status
+              ? `${total.toLocaleString()} ${total === 1 ? "lead" : "leads"}`
+              : `${total.toLocaleString()} active · ${lostCount.toLocaleString()} lost`
         }
       >
         <ExportButton />
-        {showingLost ? (
-          <Link href="/leads" className="btn btn-secondary">
-            <ArrowLeft size={16} /> Active leads
-          </Link>
-        ) : lostCount > 0 ? (
-          <Link href="/leads?status=LOST" className="btn btn-secondary">
-            <Archive size={16} /> Lost ({lostCount.toLocaleString()})
-          </Link>
-        ) : null}
         {isAdmin ? (
           <Link href="/duplicates" className="btn btn-secondary">
-            <Copy size={16} /> Duplicates
+            <Copy size={15} /> Duplicates
           </Link>
         ) : null}
         <Link href="/leads/new" className="btn btn-primary">
-          <Plus size={16} /> Add lead
+          <Plus size={15} /> Add lead
         </Link>
       </PageHeader>
 

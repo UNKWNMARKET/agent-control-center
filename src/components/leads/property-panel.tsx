@@ -14,9 +14,9 @@ export function OwnershipChip({ ownership, homestead, className }: { ownership: 
     OWNER: "bg-positive-soft text-positive",
     LIKELY_RENTER: "bg-warning-soft text-warning",
     UNCERTAIN: "bg-info-soft text-info",
-    NOT_FOUND: "bg-black/5 text-faint",
-    NO_ADDRESS: "bg-black/5 text-faint",
-    ERROR: "bg-black/5 text-faint",
+    NOT_FOUND: "bg-fill text-faint",
+    NO_ADDRESS: "bg-fill text-faint",
+    ERROR: "bg-fill text-faint",
   };
   const label: Record<Ownership, string> = {
     OWNER: homestead ? "Homeowner · homestead" : "Homeowner",

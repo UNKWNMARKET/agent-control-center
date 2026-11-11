@@ -42,7 +42,7 @@ export function LogActivity({ leadId }: { leadId: string }) {
 
   return (
     <div className="mb-5 rounded-2xl border border-line bg-surface-2 p-3">
-      <div className="mb-2 flex gap-1 rounded-xl bg-black/[0.04] p-1">
+      <div className="mb-2 flex gap-1 rounded-xl bg-fill p-1">
         {(["CALL", "SMS"] as const).map((k) => (
           <button
             key={k}

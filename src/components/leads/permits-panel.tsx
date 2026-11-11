@@ -59,7 +59,7 @@ export function PermitsPanel({
           <span
             className={cn(
               "rounded px-1.5 py-0.5 text-[0.65rem] font-medium normal-case tracking-normal",
-              info.roofCount > 0 ? "bg-positive-soft text-positive" : "bg-black/5 text-faint",
+              info.roofCount > 0 ? "bg-positive-soft text-positive" : "bg-fill text-faint",
             )}
           >
             {info.roofCount > 0

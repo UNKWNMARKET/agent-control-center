@@ -27,7 +27,7 @@ export default async function VendorsPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
-        title="Integrations"
+        title="Lead sources"
         subtitle="Connect lead carriers. Each source gets a private webhook URL to deliver leads in real time."
       />
       <VendorManager vendors={data} appUrl={process.env.NEXT_PUBLIC_APP_URL ?? ""} />

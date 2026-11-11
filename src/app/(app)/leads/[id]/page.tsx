@@ -36,7 +36,6 @@ import { CallLink, PhoneButtons } from "@/components/phone-links";
 import { smsHref } from "@/lib/phone";
 import { getPhoneApp } from "@/lib/settings";
 import { fullName, formatDateTime, timeAgo, formatPhone } from "@/lib/utils";
-import { Avatar } from "@/components/ui";
 import { CallCount } from "@/components/call-count";
 import {
   StatusControl,
@@ -141,11 +140,10 @@ export default async function LeadDetailPage({
       </Link>
 
       {/* Header */}
-      <div className="card mb-4 flex flex-wrap items-center gap-4 p-5">
-        <Avatar name={fullName(lead)} className="h-13 w-13 text-base" />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-semibold tracking-tight text-ink">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-[28px] font-bold leading-tight tracking-tight text-ink">
               {fullName(lead)}
             </h1>
             <ScoreBadge {...leadScore(lead)} />
@@ -185,7 +183,7 @@ export default async function LeadDetailPage({
               users={users}
             />
           ) : (
-            <span className="chip bg-black/5 text-muted">
+            <span className="chip bg-fill text-muted">
               <UserCog size={13} />
               {lead.assignedTo?.name ?? "Unassigned"}
             </span>
@@ -195,7 +193,7 @@ export default async function LeadDetailPage({
 
       {/* Next touch — kept above the fold, since a lead with no next step is a lead going cold */}
       {lead.status !== "SOLD" && lead.status !== "LOST" && lead.status !== "DNC" ? (
-        <div className="mb-4">
+        <div className="mb-3">
           <NextStep
             leadId={lead.id}
             followUpAt={lead.followUpAt ? lead.followUpAt.toISOString() : null}
@@ -204,7 +202,7 @@ export default async function LeadDetailPage({
       ) : null}
 
       {/* Compliance + workflow */}
-      <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="mb-3 grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
         <DncControl
           leadId={lead.id}
           status={lead.dncStatus}
@@ -219,7 +217,7 @@ export default async function LeadDetailPage({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-3">
         {/* Details form */}
         <div className="card p-6 lg:col-span-2">
           <h2 className="mb-5 text-[15px] font-semibold text-ink">Lead details</h2>
@@ -399,7 +397,7 @@ export default async function LeadDetailPage({
         </div>
 
         {/* Activity */}
-        <div className="card flex flex-col p-6">
+        <div className="card flex flex-col p-6 lg:sticky lg:top-6">
           <h2 className="mb-4 text-[15px] font-semibold text-ink">Activity</h2>
 
           <SendText leadId={lead.id} allowed={smsConfigured() && canText(lead)} />

@@ -9,7 +9,7 @@ export const SCORE_META: Record<
 > = {
   HOT: { label: "Hot", chip: "bg-danger-soft text-danger" },
   WARM: { label: "Warm", chip: "bg-warning-soft text-warning" },
-  COLD: { label: "Cold", chip: "bg-black/5 text-muted" },
+  COLD: { label: "Cold", chip: "bg-fill text-muted" },
 };
 
 export function leadScore(lead: {

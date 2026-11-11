@@ -17,7 +17,7 @@ export const STATUS_META: Record<
   CONTACTED: { label: "Contacted", chip: "bg-info-soft text-info", dot: "bg-info" },
   QUOTED: { label: "Quoted", chip: "bg-warning-soft text-warning", dot: "bg-warning" },
   SOLD: { label: "Sold", chip: "bg-positive-soft text-positive", dot: "bg-positive" },
-  LOST: { label: "Lost", chip: "bg-black/5 text-muted", dot: "bg-faint" },
+  LOST: { label: "Lost", chip: "bg-fill text-muted", dot: "bg-faint" },
   DNC: { label: "Do Not Call", chip: "bg-danger-soft text-danger", dot: "bg-danger" },
 };
 

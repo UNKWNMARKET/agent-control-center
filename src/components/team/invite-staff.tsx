@@ -123,7 +123,7 @@ export function InviteStaff({ invites }: { invites: Invite[] }) {
               <p className="min-w-0 flex-1 truncate text-sm text-ink-2">
                 {i.name} <span className="text-faint">· {i.email}</span>
               </p>
-              <span className="chip bg-black/5 text-xs text-muted">
+              <span className="chip bg-fill text-xs text-muted">
                 {i.role === "ADMIN" ? "Admin" : "Agent"}
               </span>
               <span className={i.expired ? "text-xs text-danger" : "text-xs text-faint"}>

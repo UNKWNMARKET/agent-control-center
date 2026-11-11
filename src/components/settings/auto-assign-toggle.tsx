@@ -26,7 +26,7 @@ export function AutoAssignToggle({ enabled }: { enabled: boolean }) {
       aria-checked={on}
       className={cn(
         "relative h-7 w-12 shrink-0 rounded-full transition-colors",
-        on ? "bg-accent" : "bg-black/15",
+        on ? "bg-accent" : "bg-fill-2",
       )}
     >
       <span

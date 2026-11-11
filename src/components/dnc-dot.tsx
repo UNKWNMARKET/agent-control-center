@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 const META: Record<DncStatus, { dot: string; label: string; chip: string }> = {
   OK: { dot: "bg-positive", label: "OK to call & text", chip: "bg-positive-soft text-positive" },
   BLOCKED: { dot: "bg-danger", label: "Do Not Call", chip: "bg-danger-soft text-danger" },
-  UNKNOWN: { dot: "bg-faint", label: "Not checked", chip: "bg-black/5 text-muted" },
+  UNKNOWN: { dot: "bg-faint", label: "Not checked", chip: "bg-fill text-muted" },
 };
 
 export function dncLabel(status: DncStatus) {

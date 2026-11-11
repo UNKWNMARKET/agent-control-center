@@ -1,19 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { LeadStatus, Prisma } from "@prisma/client";
-import {
-  ArrowUpRight,
-  TrendingUp,
-  UserPlus,
-  PhoneCall,
-  BadgeCheck,
-  CalendarClock,
-  CalendarSync,
-} from "lucide-react";
+import { ArrowUpRight, CalendarClock, RefreshCw } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/auth";
 import { LEAD_STATUSES, STATUS_META } from "@/lib/leads";
-import { StatusBadge, Avatar } from "@/components/ui";
+import { StatusBadge, Avatar, CardHeader } from "@/components/ui";
 import { DncDot } from "@/components/dnc-dot";
 import { fullName, formatPhone, formatDate, timeAgo, cn } from "@/lib/utils";
 
@@ -66,135 +58,163 @@ export default async function DashboardPage() {
   const conversion = total > 0 ? Math.round((sold / total) * 100) : 0;
 
   const stats = [
-    { label: "Total leads", value: total, icon: <TrendingUp size={18} />, href: "/leads" },
-    { label: "New this week", value: newThisWeek, icon: <UserPlus size={18} />, href: "/leads?status=NEW" },
-    { label: "Working", value: working, icon: <PhoneCall size={18} />, href: "/leads?status=CONTACTED" },
-    { label: "Sold", value: sold, icon: <BadgeCheck size={18} />, href: "/leads?status=SOLD" },
+    { label: "Total leads", value: total, href: "/leads" },
+    { label: "New this week", value: newThisWeek, href: "/leads?status=NEW" },
+    { label: "Working", value: working, href: "/leads?status=CONTACTED" },
+    { label: "Sold", value: sold, href: "/leads?status=SOLD" },
   ];
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
     <div>
-      <div className="mb-7">
-        <p className="text-sm text-muted">
+      <div className="mb-6">
+        <p className="text-sm text-muted">{today}</p>
+        <h1 className="text-[28px] font-bold leading-tight tracking-tight text-ink">
           {greeting()}, {user.name.split(" ")[0]}
-        </p>
-        <h1 className="text-[28px] font-semibold tracking-tight text-ink">
-          {isAdmin ? "Agency overview" : "Your leads"}
         </h1>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((s) => (
+      {/* The numbers, in one quiet row. Each is a way into the list behind it. */}
+      <div className="card grid grid-cols-2 overflow-hidden lg:grid-cols-4">
+        {stats.map((s, i) => (
           <Link
             key={s.label}
             href={s.href}
-            className="card tilt group p-5"
+            className={cn(
+              "group px-5 py-4 transition-colors hover:bg-surface-2",
+              i % 2 === 1 && "border-l border-line",
+              i >= 2 && "border-t border-line lg:border-t-0",
+              i === 2 && "lg:border-l",
+            )}
           >
-            <div className="flex items-center justify-between">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-accent">
-                {s.icon}
-              </span>
+            <p className="flex items-center justify-between text-[13px] text-muted">
+              {s.label}
               <ArrowUpRight
-                size={16}
+                size={14}
                 className="text-faint opacity-0 transition-opacity group-hover:opacity-100"
               />
-            </div>
-            <p className="mt-4 text-[30px] font-semibold leading-none tracking-tight text-ink">
+            </p>
+            <p className="tabular mt-1 text-[28px] font-semibold leading-none tracking-tight text-ink">
               {s.value.toLocaleString()}
             </p>
-            <p className="mt-1.5 text-[13px] text-muted">{s.label}</p>
           </Link>
         ))}
       </div>
 
-      {renewals.length > 0 ? (
-        <div className="card mt-3 overflow-hidden">
-          <div className="flex items-center justify-between border-b border-line bg-accent-soft px-5 py-3">
-            <h2 className="flex items-center gap-2 text-[15px] font-semibold text-accent">
-              <CalendarSync size={16} /> Renewal clients to work ({renewals.length})
-            </h2>
-            <Link href="/renewals" className="text-sm font-medium text-accent hover:underline">
-              View all
-            </Link>
-          </div>
-          <ul className="divide-y divide-line">
-            {renewals.map((lead) => (
-              <li key={lead.id}>
-                <Link
-                  href={`/leads/${lead.id}?from=%2Fdashboard`}
-                  className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-surface-2"
-                >
-                  <Avatar name={fullName(lead)} className="h-8 w-8" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-ink">{fullName(lead)}</p>
-                    <p className="truncate text-xs text-muted">
-                      {lead.address1 ?? formatPhone(lead.phone)}
-                    </p>
-                  </div>
-                  <span className="text-xs font-medium text-accent">
-                    {lead.tags.includes("verify-owner") ? "verify owner" : "homeowner"}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {isAdmin && unassigned > 0 ? (
+        <Link
+          href="/leads?assignee=unassigned"
+          className="card card-interactive mt-3 flex items-center gap-3 px-5 py-3 text-sm"
+        >
+          <span className="h-2 w-2 shrink-0 rounded-full bg-warning" />
+          <span className="font-medium text-ink">
+            {unassigned} {unassigned === 1 ? "lead is" : "leads are"} waiting to be assigned
+          </span>
+          <span className="ml-auto flex items-center gap-1 font-medium text-accent">
+            Assign <ArrowUpRight size={14} />
+          </span>
+        </Link>
       ) : null}
 
-      {dueFollowUps.length > 0 ? (
-        <div className="card mt-3 overflow-hidden">
-          <div className="flex items-center justify-between border-b border-line bg-warning-soft px-5 py-3">
-            <h2 className="flex items-center gap-2 text-[15px] font-semibold text-warning">
-              <CalendarClock size={16} /> Follow-ups due ({dueFollowUps.length})
-            </h2>
-            <Link
-              href="/follow-ups"
-              className="text-sm font-medium text-warning hover:underline"
-            >
-              View all
-            </Link>
-          </div>
-          <ul className="divide-y divide-line">
-            {dueFollowUps.map((lead) => (
-              <li key={lead.id}>
-                <Link
-                  href={`/leads/${lead.id}?from=%2Fdashboard`}
-                  className="flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-surface-2"
-                >
-                  <Avatar name={fullName(lead)} className="h-8 w-8" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-ink">{fullName(lead)}</p>
-                    <p className="truncate text-xs text-muted">{formatPhone(lead.phone)}</p>
-                  </div>
-                  <span className="text-xs font-medium text-warning">
-                    {formatDate(lead.followUpAt)}
+      {/* What needs doing today. */}
+      {dueFollowUps.length > 0 || renewals.length > 0 ? (
+        <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {dueFollowUps.length > 0 ? (
+            <div className="card overflow-hidden pb-1.5">
+              <CardHeader
+                title={
+                  <span className="flex items-center gap-2">
+                    <CalendarClock size={16} className="text-warning" /> Follow-ups due
                   </span>
+                }
+              >
+                <Link href="/follow-ups" className="text-[13px] font-medium text-accent hover:underline">
+                  See all
                 </Link>
-              </li>
-            ))}
-          </ul>
+              </CardHeader>
+              <ul>
+                {dueFollowUps.map((lead) => (
+                  <li key={lead.id}>
+                    <Link
+                      href={`/leads/${lead.id}?from=%2Fdashboard`}
+                      className="flex items-center gap-3 px-5 py-2 transition-colors hover:bg-surface-2"
+                    >
+                      <Avatar name={fullName(lead)} className="h-8 w-8" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-ink">{fullName(lead)}</p>
+                        <p className="truncate text-xs text-muted">{formatPhone(lead.phone)}</p>
+                      </div>
+                      <span className="text-xs font-medium text-warning">
+                        {formatDate(lead.followUpAt)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {renewals.length > 0 ? (
+            <div className="card overflow-hidden pb-1.5">
+              <CardHeader
+                title={
+                  <span className="flex items-center gap-2">
+                    <RefreshCw size={16} className="text-accent" /> Renewals to work
+                  </span>
+                }
+              >
+                <Link href="/renewals" className="text-[13px] font-medium text-accent hover:underline">
+                  See all
+                </Link>
+              </CardHeader>
+              <ul>
+                {renewals.map((lead) => (
+                  <li key={lead.id}>
+                    <Link
+                      href={`/leads/${lead.id}?from=%2Fdashboard`}
+                      className="flex items-center gap-3 px-5 py-2 transition-colors hover:bg-surface-2"
+                    >
+                      <Avatar name={fullName(lead)} className="h-8 w-8" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-ink">{fullName(lead)}</p>
+                        <p className="truncate text-xs text-muted">
+                          {lead.address1 ?? formatPhone(lead.phone)}
+                        </p>
+                      </div>
+                      <span className="text-xs text-muted">
+                        {lead.tags.includes("verify-owner") ? "Verify owner" : "Homeowner"}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
       <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
         {/* Pipeline breakdown */}
-        <div className="card p-5 lg:col-span-1">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-semibold text-ink">Pipeline</h2>
-            <span className="text-xs text-muted">{conversion}% sold</span>
-          </div>
-          <div className="mt-4 space-y-3">
+        <div className="card pb-4 lg:col-span-1">
+          <CardHeader title="Pipeline">
+            <span className="text-[13px] text-muted">{conversion}% sold</span>
+          </CardHeader>
+          <div className="mt-1 space-y-3 px-5">
             {LEAD_STATUSES.map((s) => {
               const count = byStatus[s];
               const pct = total > 0 ? Math.round((count / total) * 100) : 0;
               return (
-                <Link key={s} href={`/leads?status=${s}`} className="block">
+                <Link key={s} href={`/leads?status=${s}`} className="group block">
                   <div className="mb-1 flex items-center justify-between text-[13px]">
-                    <span className="font-medium text-ink-2">{STATUS_META[s].label}</span>
-                    <span className="text-muted">{count}</span>
+                    <span className="text-ink-2 group-hover:text-ink">{STATUS_META[s].label}</span>
+                    <span className="tabular text-muted">{count}</span>
                   </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/[0.06]">
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-fill">
                     <div
                       className={cn("h-full rounded-full", STATUS_META[s].dot)}
                       style={{ width: `${pct}%` }}
@@ -204,38 +224,28 @@ export default async function DashboardPage() {
               );
             })}
           </div>
-          {isAdmin && unassigned > 0 ? (
-            <Link
-              href="/leads?assignee=unassigned"
-              className="mt-4 flex items-center justify-between rounded-xl bg-warning-soft px-3.5 py-2.5 text-sm font-medium text-warning"
-            >
-              {unassigned} unassigned {unassigned === 1 ? "lead" : "leads"}
-              <ArrowUpRight size={15} />
-            </Link>
-          ) : null}
         </div>
 
         {/* Recent leads */}
-        <div className="card overflow-hidden lg:col-span-2">
-          <div className="flex items-center justify-between border-b border-line px-5 py-4">
-            <h2 className="text-[15px] font-semibold text-ink">Recent leads</h2>
-            <Link href="/leads" className="text-sm font-medium text-accent hover:underline">
-              View all
+        <div className="card overflow-hidden pb-1.5 lg:col-span-2">
+          <CardHeader title="Recent leads">
+            <Link href="/leads" className="text-[13px] font-medium text-accent hover:underline">
+              See all
             </Link>
-          </div>
+          </CardHeader>
           {recent.length === 0 ? (
             <p className="px-5 py-10 text-center text-sm text-muted">
               No leads yet. They’ll show up here as soon as they arrive.
             </p>
           ) : (
-            <ul className="divide-y divide-line">
+            <ul>
               {recent.map((lead) => (
                 <li key={lead.id}>
                   <Link
                     href={`/leads/${lead.id}?from=%2Fdashboard`}
-                    className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-2"
+                    className="flex items-center gap-3 px-5 py-2 transition-colors hover:bg-surface-2"
                   >
-                    <Avatar name={fullName(lead)} className="h-9 w-9" />
+                    <Avatar name={fullName(lead)} className="h-8 w-8" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-ink">
                         {fullName(lead)}

@@ -202,7 +202,7 @@ function MemberRow({
         <span
           className={cn(
             "chip",
-            member.active ? "bg-positive-soft text-positive" : "bg-black/5 text-muted",
+            member.active ? "bg-positive-soft text-positive" : "bg-fill text-muted",
           )}
         >
           {member.active ? <ShieldCheck size={13} /> : null}
@@ -218,7 +218,7 @@ function MemberRow({
               const pw = prompt(`Set a new password for ${member.name} (min 8 chars):`);
               if (pw) run(() => quickResetPassword(member.id, pw));
             }}
-            className="rounded-full p-2 text-muted hover:bg-black/5"
+            className="rounded-full p-2 text-muted hover:bg-fill"
           >
             <KeyRound size={16} />
           </button>
@@ -227,7 +227,7 @@ function MemberRow({
               <button
                 disabled={pending}
                 onClick={() => run(() => toggleUserActive(member.id))}
-                className="rounded-full px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-black/5"
+                className="rounded-full px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-fill"
               >
                 {member.active ? "Deactivate" : "Activate"}
               </button>

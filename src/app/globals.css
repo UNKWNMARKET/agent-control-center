@@ -1,67 +1,106 @@
 @import "tailwindcss";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   AGENT CONTROL CENTER — Apple-inspired design system
+   AGENT CONTROL CENTER — design system
 
-   Light, generous whitespace, hairline borders, restrained accent — and
-   real depth. Surfaces sit on the canvas rather than being drawn on it:
-   every raised thing gets a tight contact shadow plus a wide ambient one,
-   and a one-pixel highlight along its top edge where the light lands.
+   Quiet by default. One accent colour, one hairline, one corner radius per
+   kind of thing. Surfaces are flat: a card is told apart from the canvas by
+   its colour, not by a shadow, so a screen full of them stays calm. Depth is
+   kept for the things that really do float — menus, sheets, dialogs.
 
-   Motion is spring-like and short. Everything that moves is switched off
-   under prefers-reduced-motion, because a CRM is used all day.
+   Every colour is a token, and every token has a dark value, so the whole
+   app follows the system appearance without a single component knowing.
+
+   Motion is short and switched off under prefers-reduced-motion, because a
+   CRM is used all day.
    ────────────────────────────────────────────────────────────────────────── */
 
 @theme {
-  --color-canvas: #f2f2f5;
+  --color-canvas: #f5f5f7;
   --color-surface: #ffffff;
   --color-surface-2: #fafafa;
+  --color-sidebar: #ececef;
 
   --color-ink: #1d1d1f;
-  --color-ink-2: #424245;
+  --color-ink-2: #3a3a3c;
   --color-muted: #6e6e73;
-  --color-faint: #86868b;
+  --color-faint: #8e8e93;
 
-  --color-line: #e3e3e6;
-  --color-line-strong: #d2d2d7;
+  --color-line: rgba(0, 0, 0, 0.08);
+  --color-line-strong: rgba(0, 0, 0, 0.14);
+
+  /* Neutral fills: hover states, filled inputs, quiet buttons. */
+  --color-fill: rgba(118, 118, 128, 0.1);
+  --color-fill-2: rgba(118, 118, 128, 0.16);
 
   --color-accent: #0071e3;
-  --color-accent-hover: #0077ed;
-  --color-accent-soft: #e8f1fd;
+  --color-accent-hover: #0064c8;
+  --color-accent-soft: rgba(0, 113, 227, 0.1);
+  --color-on-accent: #ffffff;
 
-  --color-positive: #1d9e54;
-  --color-positive-soft: #e6f5ec;
-  --color-warning: #b25000;
-  --color-warning-soft: #fdeede;
+  --color-positive: #1a8a4a;
+  --color-positive-soft: rgba(52, 199, 89, 0.14);
+  --color-warning: #a85b00;
+  --color-warning-soft: rgba(255, 149, 0, 0.14);
   --color-danger: #d70015;
-  --color-danger-soft: #fdecee;
-  --color-info: #5e5ce6;
-  --color-info-soft: #ecebfd;
+  --color-danger-soft: rgba(255, 59, 48, 0.11);
+  --color-info: #5856d6;
+  --color-info-soft: rgba(88, 86, 214, 0.11);
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 
-  --radius-xl: 20px;
-  --radius-2xl: 24px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
 
-  /* Elevation. Each level is a tight contact shadow (the object meeting the
-     surface) plus a wide, soft ambient one (the room light around it). */
-  --shadow-1: 0 1px 1px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.04);
-  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 24px -6px rgba(0, 0, 0, 0.09);
-  --shadow-3: 0 2px 4px rgba(0, 0, 0, 0.06), 0 18px 40px -10px rgba(0, 0, 0, 0.16);
-  --shadow-4: 0 4px 10px rgba(0, 0, 0, 0.08), 0 32px 64px -16px rgba(0, 0, 0, 0.26);
+  /* Only floating things cast a shadow. */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-3: 0 6px 24px -6px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-4: 0 24px 60px -12px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-card: none;
+  --shadow-pop: var(--shadow-3);
 
-  /* Kept for anything still referencing the old names. */
-  --shadow-card: var(--shadow-2);
-  --shadow-pop: var(--shadow-4);
-
-  /* The highlight along a lit top edge, and the hairline that defines it. */
-  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --edge-line: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
-
-  --ease-spring: cubic-bezier(0.2, 0.9, 0.25, 1.1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: #000000;
+    --color-surface: #1c1c1e;
+    --color-surface-2: #232326;
+    --color-sidebar: #131314;
+
+    --color-ink: #f5f5f7;
+    --color-ink-2: #d1d1d6;
+    --color-muted: #98989f;
+    --color-faint: #6e6e73;
+
+    --color-line: rgba(255, 255, 255, 0.1);
+    --color-line-strong: rgba(255, 255, 255, 0.18);
+
+    --color-fill: rgba(118, 118, 128, 0.2);
+    --color-fill-2: rgba(118, 118, 128, 0.3);
+
+    --color-accent: #0a84ff;
+    --color-accent-hover: #339bff;
+    --color-accent-soft: rgba(10, 132, 255, 0.18);
+
+    --color-positive: #30d158;
+    --color-positive-soft: rgba(48, 209, 88, 0.16);
+    --color-warning: #ff9f0a;
+    --color-warning-soft: rgba(255, 159, 10, 0.16);
+    --color-danger: #ff453a;
+    --color-danger-soft: rgba(255, 69, 58, 0.16);
+    --color-info: #7d7aff;
+    --color-info-soft: rgba(125, 122, 255, 0.18);
+
+    --shadow-3: 0 6px 24px -6px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-4: 0 24px 60px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1);
+
+    color-scheme: dark;
+  }
 }
 
 html {
@@ -73,29 +112,36 @@ body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  letter-spacing: -0.011em;
+  font-size: 15px;
+  letter-spacing: -0.01em;
 }
 
-/* Headings tighten up the way SF Pro Display does at larger sizes. */
 h1,
 h2,
 h3 {
-  letter-spacing: -0.021em;
+  letter-spacing: -0.022em;
+}
+
+/* Numbers line up in tables and stat tiles. */
+table,
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+}
+
+/* One focus ring, everywhere, for keyboard users only. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* Thin, unobtrusive scrollbars */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-strong) transparent;
-}
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-*::-webkit-scrollbar-thumb {
-  background: var(--color-line-strong);
-  border-radius: 999px;
-  border: 3px solid var(--color-canvas);
 }
 
 /* ── Reusable component classes ─────────────────────────────────────────── */
@@ -104,111 +150,60 @@ h3 {
     position: relative;
     background: var(--color-surface);
     border: 1px solid var(--color-line);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-2), var(--edge-light);
-    transition:
-      box-shadow 0.35s var(--ease-out),
-      transform 0.35s var(--ease-out);
+    border-radius: var(--radius-2xl);
   }
 
   /* Opt-in: a card that answers the pointer. Used for anything clickable. */
-  .card-interactive {
-    cursor: pointer;
-  }
-  .card-interactive:hover {
-    transform: translate3d(0, -2px, 0);
-    box-shadow: var(--shadow-3), var(--edge-light);
-  }
-  .card-interactive:active {
-    transform: translate3d(0, 0, 0);
-    box-shadow: var(--shadow-1), var(--edge-light);
-    transition-duration: 0.09s;
-  }
-
-  /* Opt-in 3D: the card tips very slightly away from the pointer and catches
-     a band of light across its face. Two and a half degrees is deliberate —
-     enough to read as physical, not enough to distort the numbers on it. */
+  .card-interactive,
   .tilt {
-    transform-style: preserve-3d;
-    will-change: transform;
+    cursor: pointer;
+    transition: background 0.15s ease;
   }
-  .tilt::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    opacity: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0) 30%,
-      rgba(255, 255, 255, 0.55) 48%,
-      rgba(255, 255, 255, 0) 66%
-    );
-    transition: opacity 0.45s var(--ease-out);
-  }
+  .card-interactive:hover,
   .tilt:hover {
-    transform: perspective(1000px) translate3d(0, -3px, 0) rotateX(2.5deg) scale(1.012);
-    box-shadow: var(--shadow-3), var(--edge-light);
-  }
-  .tilt:hover::after {
-    opacity: 1;
-  }
-  .tilt:active {
-    transform: perspective(1000px) translate3d(0, -1px, 0) rotateX(1deg) scale(0.998);
-    transition-duration: 0.09s;
+    background: var(--color-surface-2);
   }
 
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    border-radius: 980px;
+    gap: 0.4rem;
+    min-height: 2.25rem;
+    border-radius: 10px;
     font-weight: 500;
-    font-size: 0.9rem;
-    padding: 0.55rem 1.15rem;
-    line-height: 1;
+    font-size: 0.875rem;
+    padding: 0.45rem 0.85rem;
+    line-height: 1.1;
     cursor: pointer;
     white-space: nowrap;
     user-select: none;
     transition:
-      background 0.18s ease,
-      box-shadow 0.22s var(--ease-out),
-      transform 0.14s var(--ease-spring);
+      background 0.15s ease,
+      opacity 0.15s ease,
+      transform 0.1s ease;
   }
   .btn:active:not(:disabled) {
-    transform: scale(0.965);
+    transform: scale(0.98);
   }
   .btn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
-    box-shadow: none;
   }
 
   .btn-primary {
-    background: linear-gradient(180deg, #0a84ff 0%, var(--color-accent) 100%);
-    color: #fff;
-    box-shadow:
-      0 1px 1px rgba(0, 0, 0, 0.07),
-      0 4px 14px -2px rgba(0, 113, 227, 0.36),
-      inset 0 1px 0 rgba(255, 255, 255, 0.26);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
   }
   .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(180deg, #1a8fff 0%, var(--color-accent-hover) 100%);
-    box-shadow:
-      0 1px 1px rgba(0, 0, 0, 0.07),
-      0 8px 22px -4px rgba(0, 113, 227, 0.44),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    background: var(--color-accent-hover);
   }
   .btn-secondary {
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--color-fill);
     color: var(--color-ink);
-    box-shadow: var(--edge-line);
   }
   .btn-secondary:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.09);
-    box-shadow: var(--shadow-1), var(--edge-line);
+    background: var(--color-fill-2);
   }
   .btn-ghost {
     background: transparent;
@@ -220,96 +215,153 @@ h3 {
   .btn-danger {
     background: var(--color-danger-soft);
     color: var(--color-danger);
-    box-shadow: var(--edge-line);
   }
   .btn-danger:hover:not(:disabled) {
-    background: #fbdadf;
-    box-shadow: var(--shadow-1), var(--edge-line);
+    filter: brightness(0.96);
   }
 
+  /* Filled fields: no border to draw the eye until one has focus. */
   .input {
     width: 100%;
-    background: var(--color-surface);
-    border: 1px solid var(--color-line-strong);
-    border-radius: 12px;
-    padding: 0.62rem 0.85rem;
-    font-size: 0.92rem;
+    min-height: 2.25rem;
+    background: var(--color-fill);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.9rem;
+    line-height: 1.3;
     color: var(--color-ink);
     outline: none;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
     transition:
+      background 0.15s ease,
       border-color 0.15s ease,
       box-shadow 0.15s ease;
   }
   .input::placeholder {
     color: var(--color-faint);
   }
+  .input:hover:not(:focus):not(:disabled) {
+    background: var(--color-fill-2);
+  }
   .input:focus {
+    background: var(--color-surface);
     border-color: var(--color-accent);
-    box-shadow:
-      0 0 0 3.5px var(--color-accent-soft),
-      inset 0 1px 2px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
+  }
+  .input:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
   select.input {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 0.7rem center;
-    padding-right: 2rem;
+    background-position: right 0.6rem center;
+    padding-right: 1.9rem;
+  }
+  select.input option {
+    background: var(--color-surface);
+    color: var(--color-ink);
+  }
+  textarea.input {
+    line-height: 1.45;
   }
 
   .label {
     display: block;
-    font-size: 0.78rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 500;
     color: var(--color-muted);
-    margin-bottom: 0.4rem;
-    letter-spacing: 0.01em;
+    margin-bottom: 0.3rem;
   }
 
   .chip {
     display: inline-flex;
     align-items: center;
+    gap: 0.3rem;
+    border-radius: 6px;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  /* A row of mutually exclusive choices, as in a macOS toolbar. */
+  .segmented {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 10px;
+    background: var(--color-fill);
+  }
+  .segment {
+    display: inline-flex;
+    align-items: center;
     gap: 0.35rem;
-    border-radius: 999px;
-    padding: 0.2rem 0.6rem;
-    font-size: 0.74rem;
+    border-radius: 8px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--color-muted);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
+  }
+  .segment:hover {
+    color: var(--color-ink);
+  }
+  .segment[data-active="true"] {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  }
+
+  /* A small uppercase caption above a group of things. */
+  .eyebrow {
+    font-size: 0.7rem;
     font-weight: 600;
-    line-height: 1.2;
-    box-shadow: var(--edge-line);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-faint);
+  }
+
+  /* Anything that floats over the page: menus, popovers. */
+  .popover {
+    background: var(--color-surface);
+    border-radius: 14px;
+    box-shadow: var(--shadow-3);
   }
 }
 
 /* ── Materials ──────────────────────────────────────────────────────────── */
 
-/* Frosted glass, as on a macOS sidebar: translucent, saturated, with a lit
-   top edge so it reads as a pane floating above what it covers. */
+/* Frosted glass for bars that content scrolls beneath. */
 .glass {
-  background: rgba(255, 255, 255, 0.72);
+  background: color-mix(in srgb, var(--color-canvas) 88%, transparent);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  box-shadow: var(--edge-light);
 }
 
-/* Elevation utilities for anything not using .card. */
-.elev-1 {
-  box-shadow: var(--shadow-1), var(--edge-light);
-}
+.elev-1,
 .elev-2 {
-  box-shadow: var(--shadow-2), var(--edge-light);
+  box-shadow: var(--shadow-1);
 }
 .elev-3 {
-  box-shadow: var(--shadow-3), var(--edge-light);
+  box-shadow: var(--shadow-3);
 }
 .elev-4 {
-  box-shadow: var(--shadow-4), var(--edge-light);
+  box-shadow: var(--shadow-4);
 }
 
-/* Content settling into place on arrival — 12px and done. */
+/* Content settling into place on arrival. */
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translate3d(0, 12px, 0);
+    transform: translate3d(0, 6px, 0);
   }
   to {
     opacity: 1;
@@ -317,11 +369,21 @@ h3 {
   }
 }
 .rise {
-  animation: rise 0.42s var(--ease-out) both;
+  animation: rise 0.3s var(--ease-out) both;
 }
 
-/* A row that can slide sideways without showing a scrollbar across the
-   top of the app. Used by the main nav, which has more items than fit. */
+@keyframes sheet-up {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: none;
+  }
+}
+.sheet-up {
+  animation: sheet-up 0.32s var(--ease-out) both;
+}
+
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -339,13 +401,11 @@ h3 {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  .card-interactive:hover,
-  .tilt:hover,
-  .tilt:active,
   .btn:active:not(:disabled) {
     transform: none;
   }
-  .rise {
+  .rise,
+  .sheet-up {
     animation: none;
   }
 }

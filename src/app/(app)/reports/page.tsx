@@ -214,7 +214,7 @@ export default async function ReportsPage({
                       {hit ? " ✓" : ""}
                     </span>
                   </div>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/[0.06]">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-fill">
                     <div
                       className={cn("h-full rounded-full", hit ? "bg-positive" : "bg-accent")}
                       style={{ width: `${pct}%` }}
@@ -242,7 +242,7 @@ export default async function ReportsPage({
                     {count} · {pct}%
                   </span>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/[0.06]">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-fill">
                   <div
                     className={cn("h-full rounded-full", STATUS_META[s].dot)}
                     style={{ width: `${pct}%` }}

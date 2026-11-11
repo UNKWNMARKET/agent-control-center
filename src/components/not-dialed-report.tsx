@@ -72,7 +72,7 @@ function Chip({ href, active, children }: { href: string; active: boolean; child
       aria-current={active ? "true" : undefined}
       className={cn(
         "rounded-full border px-3 py-1 text-[13px] transition-colors",
-        active ? "border-ink bg-ink text-white" : "border-line text-ink-2 hover:bg-black/[0.04]",
+        active ? "border-ink bg-ink text-canvas" : "border-line text-ink-2 hover:bg-fill",
       )}
     >
       {children}

@@ -175,7 +175,7 @@ export function DailyWelcome({ userId, name }: { userId: string; name: string })
           display: grid;
           place-items: center;
           padding: 16px;
-          background: color-mix(in srgb, var(--color-bg, #f5f5f7) 86%, transparent);
+          background: color-mix(in srgb, var(--color-canvas, #f5f5f7) 86%, transparent);
           backdrop-filter: blur(6px);
           cursor: pointer;
           animation: dwIn 0.35s ease both;

@@ -65,7 +65,7 @@ export default async function AgencyPage({
   return (
     <div>
       <PageHeader
-        title="Agency management"
+        title="Book of business"
         subtitle={
           tab === "active"
             ? `${activeCount} in force${inForcePremium ? ` · ${money(inForcePremium)} written premium` : ""}`

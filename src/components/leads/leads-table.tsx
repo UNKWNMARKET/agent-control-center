@@ -3,14 +3,14 @@
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, Trash2, UserCheck, CalendarClock, Tag } from "lucide-react";
+import { ChevronRight, Trash2, CalendarClock, Tag } from "lucide-react";
 import type { LeadStatus, DncStatus } from "@prisma/client";
-import { StatusBadge, Avatar, EmptyState } from "@/components/ui";
+import { StatusBadge, EmptyState } from "@/components/ui";
 import { DncDot } from "@/components/dnc-dot";
 import { ScoreBadge } from "@/components/score-badge";
 import { leadScore } from "@/lib/score";
 import { LEAD_STATUSES, STATUS_META } from "@/lib/leads";
-import { fullName, formatPhone, timeAgo, cn } from "@/lib/utils";
+import { fullName, timeAgo, cn } from "@/lib/utils";
 import type { MailClient } from "@/lib/mail";
 import type { Ownership } from "@/lib/property";
 import type { PhoneApp } from "@/lib/phone";
@@ -28,7 +28,7 @@ function XDateChip({ date }: { date: string }) {
     <span
       className={cn(
         "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[0.65rem] font-medium",
-        days < 0 ? "bg-black/5 text-faint" : urgent ? "bg-danger-soft text-danger" : "bg-warning-soft text-warning",
+        days < 0 ? "bg-fill text-faint" : urgent ? "bg-danger-soft text-danger" : "bg-warning-soft text-warning",
       )}
       title={`Current policy expires ${new Date(date).toLocaleDateString("en-US", { timeZone: "UTC" })}`}
     >
@@ -167,111 +167,171 @@ export function LeadsTable({
     );
   }
 
+  const chips = (r: Row) => (
+    <>
+      {r.ownership ? <OwnershipChip ownership={r.ownership} homestead={r.homestead} /> : null}
+      {r.policyExpiresAt ? <XDateChip date={r.policyExpiresAt} /> : null}
+      {r.followUpAt ? <FollowUpChip date={r.followUpAt} /> : null}
+      {r.tags.map((t) => (
+        <span
+          key={t}
+          className="rounded bg-fill px-1.5 py-0.5 text-[0.65rem] font-medium text-muted"
+        >
+          {t}
+        </span>
+      ))}
+    </>
+  );
+
+  const hasChips = (r: Row) =>
+    Boolean(r.ownership || r.policyExpiresAt || r.followUpAt || r.tags.length);
+
   return (
     <div className="card overflow-hidden">
       {/* Bulk action bar */}
       {isAdmin && selected.size > 0 ? (
-        <div className="flex flex-wrap items-center gap-3 border-b border-line bg-accent-soft px-4 py-2.5">
-          <span className="text-sm font-medium text-accent">
+        <div className="flex flex-wrap items-center gap-2 border-b border-line bg-accent-soft px-4 py-2.5">
+          <span className="mr-auto text-sm font-medium text-accent">
             {selected.size} selected
           </span>
-          <div className="ml-auto flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <UserCheck size={15} className="text-accent" />
-              <select
-                defaultValue=""
-                disabled={pending}
-                onChange={(e) => {
-                  if (e.target.value !== "") runAssign(e.target.value);
-                  e.target.value = "";
-                }}
-                className="input w-auto py-1.5 text-sm"
-              >
-                <option value="" disabled>
-                  Assign to…
-                </option>
-                <option value="">Unassign</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <select
-              defaultValue=""
-              disabled={pending}
-              onChange={(e) => {
-                if (e.target.value !== "") runStatus(e.target.value as LeadStatus);
-                e.target.value = "";
-              }}
-              className="input w-auto py-1.5 text-sm"
-            >
-              <option value="" disabled>
-                Set status…
+          <select
+            defaultValue=""
+            disabled={pending}
+            aria-label="Assign selected leads"
+            onChange={(e) => {
+              if (e.target.value !== "") runAssign(e.target.value === "__none" ? "" : e.target.value);
+              e.target.value = "";
+            }}
+            className="input w-auto bg-surface"
+          >
+            <option value="" disabled>
+              Assign to…
+            </option>
+            <option value="__none">Nobody (unassign)</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
               </option>
-              {/* Sold isn't offered here — it goes through Mark sold, which
-                  collects the paperwork and creates the policy. */}
-              {LEAD_STATUSES.filter((s) => s !== "SOLD").map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_META[s].label}
-                </option>
-              ))}
-            </select>
-            <div className="flex items-center gap-1.5">
-              <Tag size={15} className="text-accent" />
-              <input
-                placeholder="Add tag…"
-                disabled={pending}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const v = (e.target as HTMLInputElement).value.trim();
-                    if (v) {
-                      runTag(v);
-                      (e.target as HTMLInputElement).value = "";
-                    }
-                  }
-                }}
-                className="input w-24 py-1.5 text-sm"
-              />
-            </div>
-            <button
-              onClick={runDelete}
+            ))}
+          </select>
+          <select
+            defaultValue=""
+            disabled={pending}
+            aria-label="Set status of selected leads"
+            onChange={(e) => {
+              if (e.target.value !== "") runStatus(e.target.value as LeadStatus);
+              e.target.value = "";
+            }}
+            className="input w-auto bg-surface"
+          >
+            <option value="" disabled>
+              Set status…
+            </option>
+            {/* Sold isn't offered here — it goes through Mark sold, which
+                collects the paperwork and creates the policy. */}
+            {LEAD_STATUSES.filter((s) => s !== "SOLD").map((s) => (
+              <option key={s} value={s}>
+                {STATUS_META[s].label}
+              </option>
+            ))}
+          </select>
+          <div className="relative">
+            <Tag
+              size={14}
+              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-faint"
+            />
+            <input
+              placeholder="Add tag, press Enter"
+              aria-label="Tag selected leads"
               disabled={pending}
-              className="btn btn-danger py-1.5"
-            >
-              <Trash2 size={15} /> Delete
-            </button>
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const v = (e.target as HTMLInputElement).value.trim();
+                  if (v) {
+                    runTag(v);
+                    (e.target as HTMLInputElement).value = "";
+                  }
+                }
+              }}
+              className="input w-44 bg-surface pl-8"
+            />
           </div>
-          {refused ? (
-            <p className="w-full text-xs text-warning">{refused}</p>
-          ) : null}
+          <button onClick={runDelete} disabled={pending} className="btn btn-danger">
+            <Trash2 size={15} /> Delete
+          </button>
+          {refused ? <p className="w-full text-xs text-warning">{refused}</p> : null}
         </div>
       ) : null}
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs font-semibold uppercase tracking-wide text-faint">
+      {/* Phone: one lead per row, the whole row tappable. */}
+      <ul className="divide-y divide-line md:hidden">
+        {rows.map((r) => {
+          const isSel = selected.has(r.id);
+          return (
+            <li
+              key={r.id}
+              onClick={() => router.push(leadHref(r.id))}
+              className={cn(
+                "flex cursor-pointer items-start gap-3 px-4 py-3 active:bg-surface-2",
+                isSel && "bg-accent-soft",
+              )}
+            >
               {isAdmin ? (
-                <th className="w-10 px-4 py-3">
+                <span className="-m-2 p-2" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={isSel}
+                    onChange={() => toggle(r.id)}
+                    aria-label={`Select ${fullName(r)}`}
+                    className="mt-1 h-4 w-4 accent-[var(--color-accent)]"
+                  />
+                </span>
+              ) : null}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="truncate text-[15px] font-medium text-ink">{fullName(r)}</p>
+                  <span className="shrink-0 text-xs text-faint">{timeAgo(r.createdAt)}</span>
+                </div>
+                <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-muted">
+                  <DncDot status={r.dncStatus} reason={r.dncReason} className="h-2 w-2" />
+                  <CallLink phone={r.phone} app={phoneApp} leadId={r.id} stopRowClick />
+                  {r.product ? <span>· {r.product}</span> : null}
+                </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <StatusBadge status={r.status} />
+                  <ScoreBadge {...leadScore(r)} />
+                  {chips(r)}
+                </div>
+              </div>
+              <ChevronRight size={16} className="mt-1 shrink-0 text-faint" />
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Desk: the full table. */}
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-line text-left text-xs text-faint">
+              {isAdmin ? (
+                <th className="w-10 py-2.5 pl-5 pr-1">
                   <input
                     type="checkbox"
                     checked={allSelected}
                     onChange={toggleAll}
+                    aria-label="Select all"
                     className="h-4 w-4 accent-[var(--color-accent)]"
                   />
                 </th>
               ) : null}
-              <th className="px-3 py-3 font-semibold">Name</th>
-              <th className="px-3 py-3 font-semibold">Contact</th>
-              <th className="px-3 py-3 font-semibold">Product</th>
-              <th className="px-3 py-3 font-semibold">Source</th>
-              <th className="px-3 py-3 font-semibold">Status</th>
-              <th className="px-3 py-3 font-semibold">Priority</th>
-              {isAdmin ? <th className="px-3 py-3 font-semibold">Assigned</th> : null}
-              <th className="px-3 py-3 font-semibold">Added</th>
-              <th className="w-8 px-3 py-3" />
+              <th className={cn("px-3 py-2.5 font-medium", !isAdmin && "pl-5")}>Name</th>
+              <th className="px-3 py-2.5 font-medium">Contact</th>
+              <th className="px-3 py-2.5 font-medium">Interest</th>
+              <th className="px-3 py-2.5 font-medium">Status</th>
+              <th className="px-3 py-2.5 font-medium">Priority</th>
+              {isAdmin ? <th className="px-3 py-2.5 font-medium">Assigned</th> : null}
+              <th className="py-2.5 pl-3 pr-5 text-right font-medium">Added</th>
             </tr>
           </thead>
           <tbody>
@@ -283,77 +343,55 @@ export function LeadsTable({
                   onClick={() => router.push(leadHref(r.id))}
                   className={cn(
                     "cursor-pointer border-b border-line transition-colors last:border-0 hover:bg-surface-2",
-                    isSel && "bg-accent-soft/50",
+                    isSel && "bg-accent-soft hover:bg-accent-soft",
                   )}
                 >
                   {isAdmin ? (
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                    <td className="py-2.5 pl-5 pr-1" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={isSel}
                         onChange={() => toggle(r.id)}
+                        aria-label={`Select ${fullName(r)}`}
                         className="h-4 w-4 accent-[var(--color-accent)]"
                       />
                     </td>
                   ) : null}
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <Avatar name={fullName(r)} className="h-8 w-8" />
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-ink">{fullName(r)}</p>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-1 text-xs">
-                          {r.state ? <span className="text-faint">{r.state}</span> : null}
-                          {r.ownership ? (
-                            <OwnershipChip ownership={r.ownership} homestead={r.homestead} />
-                          ) : null}
-                          {r.policyExpiresAt ? <XDateChip date={r.policyExpiresAt} /> : null}
-                          {r.followUpAt ? <FollowUpChip date={r.followUpAt} /> : null}
-                          {r.tags.map((t) => (
-                            <span
-                              key={t}
-                              className="rounded bg-info-soft px-1.5 py-0.5 text-[0.65rem] font-medium text-info"
-                            >
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                  <td className={cn("px-3 py-2.5", !isAdmin && "pl-5")}>
+                    <p className="font-medium text-ink">{fullName(r)}</p>
+                    {hasChips(r) ? (
+                      <div className="mt-1 flex flex-wrap items-center gap-1">{chips(r)}</div>
+                    ) : null}
                   </td>
-                  <td className="px-3 py-3">
-                    <p className="flex items-center gap-1.5 text-ink-2">
-                      <DncDot status={r.dncStatus} reason={r.dncReason} />
+                  <td className="px-3 py-2.5">
+                    <p className="flex items-center gap-1.5 whitespace-nowrap text-ink-2">
+                      <DncDot status={r.dncStatus} reason={r.dncReason} className="h-2 w-2" />
                       <CallLink phone={r.phone} app={phoneApp} leadId={r.id} stopRowClick />
                       <TextLink phone={r.phone} app={phoneApp} leadId={r.id} stopRowClick />
                     </p>
                     {r.email ? (
-                      <p className="truncate text-xs text-faint">
-                        <MailLink
-                          email={r.email}
-                          client={mailClient}
-                          stopRowClick
-                        />
+                      <p className="max-w-[220px] truncate text-xs text-faint">
+                        <MailLink email={r.email} client={mailClient} stopRowClick />
                       </p>
                     ) : null}
                   </td>
-                  <td className="px-3 py-3 text-ink-2">{r.product ?? "—"}</td>
-                  <td className="px-3 py-3 text-ink-2">{r.source ?? "—"}</td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2.5">
+                    <p className="text-ink-2">{r.product ?? "—"}</p>
+                    {r.source ? <p className="text-xs text-faint">{r.source}</p> : null}
+                  </td>
+                  <td className="px-3 py-2.5">
                     <StatusBadge status={r.status} />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-2.5">
                     <ScoreBadge {...leadScore(r)} />
                   </td>
                   {isAdmin ? (
-                    <td className="px-3 py-3 text-ink-2">
-                      {r.assignedToName ?? (
-                        <span className="text-warning">Unassigned</span>
-                      )}
+                    <td className="whitespace-nowrap px-3 py-2.5 text-ink-2">
+                      {r.assignedToName ?? <span className="text-warning">Unassigned</span>}
                     </td>
                   ) : null}
-                  <td className="px-3 py-3 text-faint">{timeAgo(r.createdAt)}</td>
-                  <td className="px-3 py-3 text-faint">
-                    <ChevronRight size={16} />
+                  <td className="whitespace-nowrap py-2.5 pl-3 pr-5 text-right text-faint">
+                    {timeAgo(r.createdAt)}
                   </td>
                 </tr>
               );
@@ -363,18 +401,18 @@ export function LeadsTable({
       </div>
 
       {totalPages > 1 ? (
-        <div className="flex items-center justify-between border-t border-line px-4 py-3 text-sm">
+        <div className="flex items-center justify-between border-t border-line px-5 py-3 text-sm">
           <span className="text-muted">
             Page {page} of {totalPages}
           </span>
           <div className="flex gap-2">
             {page > 1 ? (
-              <Link href={pageHref(page - 1)} className="btn btn-secondary py-1.5">
+              <Link href={pageHref(page - 1)} className="btn btn-secondary">
                 Previous
               </Link>
             ) : null}
             {page < totalPages ? (
-              <Link href={pageHref(page + 1)} className="btn btn-secondary py-1.5">
+              <Link href={pageHref(page + 1)} className="btn btn-secondary">
                 Next
               </Link>
             ) : null}

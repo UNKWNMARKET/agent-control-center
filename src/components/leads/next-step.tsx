@@ -46,10 +46,8 @@ export function NextStep({
   return (
     <div
       className={cn(
-        "rounded-xl border px-4 py-3",
-        scheduled
-          ? "border-line bg-surface-2"
-          : "border-warning/35 bg-warning-soft",
+        "rounded-2xl border px-4 py-3",
+        scheduled ? "border-line bg-surface" : "border-transparent bg-warning-soft",
       )}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -77,7 +75,7 @@ export function NextStep({
                 "rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-50",
                 justSet === o.days
                   ? "border-positive bg-positive-soft text-positive"
-                  : "border-line bg-surface text-ink-2 hover:border-accent hover:text-accent",
+                  : "border-transparent bg-surface text-ink-2 hover:text-accent",
               )}
             >
               {justSet === o.days ? <Check size={12} className="mr-0.5 inline" /> : null}

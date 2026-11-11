@@ -148,7 +148,7 @@ function VendorCard({
         <span
           className={cn(
             "chip",
-            vendor.active ? "bg-positive-soft text-positive" : "bg-black/5 text-muted",
+            vendor.active ? "bg-positive-soft text-positive" : "bg-fill text-muted",
           )}
         >
           {vendor.active ? "Active" : "Disabled"}

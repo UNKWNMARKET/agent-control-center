@@ -124,7 +124,7 @@ export function ImportClient({ vendors }: { vendors: { id: string; name: string 
                 {rows.length} rows · {usable.length} importable · {headers.length} columns
               </p>
             </div>
-            <button onClick={reset} className="rounded-full p-1.5 text-muted hover:bg-black/5">
+            <button onClick={reset} className="rounded-full p-1.5 text-muted hover:bg-fill">
               <X size={18} />
             </button>
           </div>

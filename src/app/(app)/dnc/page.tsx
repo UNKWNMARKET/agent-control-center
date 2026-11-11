@@ -25,7 +25,7 @@ export default async function DncPage() {
   return (
     <div>
       <PageHeader
-        title="Do-Not-Call list"
+        title="Do Not Call"
         subtitle={`${entries.length} suppressed ${
           entries.length === 1 ? "number" : "numbers"
         } · ${blocked} flagged ${blocked === 1 ? "lead" : "leads"}`}
